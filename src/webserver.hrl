@@ -1,0 +1,1 @@
+-record(report, {name, user, pri, status}).

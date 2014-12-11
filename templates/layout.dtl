@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Webserver</title>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8"/>
+    <link rel='stylesheet' href="/css/bootstrap.min.css">
+     <link rel='stylesheet' href="/css/bootstrap-responsive.min.css">
+    <link rel='stylesheet' href="/css/webreport.css">
+    <script type="text/javascript" src="/js/zepto.min.js"></script>
+     <script type="text/javascript" src="/js/utf8.js"></script>
+    <script type="text/javascript" src="/js/bert.js"></script>
+    <script type="text/javascript" src="/js/socket.js"></script>
+  </head>
+  <body>
+<div class="navbar navbar-fixed-top">
+      <div class="navbar-inner">
+        <div class="container">
+          <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </a>
+          <a class="brand" href="/">{{shortname}}</a>
+          <div class="nav-collapse">
+            <ul class="nav">
+              <li class="active"><a href="/">Home</a></li>
+
+            </ul>
+          </div><!--/.nav-collapse -->
+
+          
+          <div class="welcome-message pull-right">
+              <strong>Welcome, </strong><span id="current-user-name">{{currentUser}}</span><a href="javascript:user_manager.logout();"> Logout</a>
+            </div>
+        
+        </div><!-- /container -->
+      </div>
+    </div>
+    {% block content %}{% endblock %}
+  </body>
+</html>

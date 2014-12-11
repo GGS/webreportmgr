@@ -1,0 +1,41 @@
+<div class="navbar navbar-fixed-top">
+      <div class="navbar-inner">
+        <div class="container">
+          <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </a>
+          <a class="brand" href="/">{{shortname}}</a>
+          <div class="nav-collapse">
+            <ul class="nav">
+              <li class="active"><a href="/">Home</a></li>
+
+            </ul>
+          </div><!--/.nav-collapse -->
+
+          
+          <div class="welcome-message pull-right">
+              <strong>Welcome, </strong><span id="current-user-name">{{currentUser}}</span><a href="javascript:user_manager.logout();"> Logout</a>
+            </div>
+        
+        </div><!-- /container -->
+      </div>
+    </div>
+
+<div id="metacontainer">
+<div id="container0">
+<p><a href="/index">Index</a><p>
+</div>
+<div>
+<form method="post" enctype="multipart/form-data" action="/upload">
+      <p><b>Reportname:</b><input type="txt" size="120" name="reportname"/></p>
+       <p><b>Username:</b><input type="txt" size="80" name="user"/></p>
+      <input type="file" name="inputfile"/>
+      <input type="submit"/>
+    </form>
+</div></div>
+<script type="text/javascript">
+//document.cookie="client=";
+</script>
+
