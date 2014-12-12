@@ -6,7 +6,6 @@
 % Application here
 -behavior(application).
 -export([start/2, stop/1, update_routes/0]).
--export([dispatch_rules/0]).
 %% Supervisor is also here
 -behaviour(supervisor).
 -export([init/1]).
@@ -62,12 +61,14 @@ dispatch_rules() ->
                     {lists:append(["/", Filetype, "/[...]"]), cowboy_static, 
                      {priv_dir, webreportmgr, [list_to_binary(Filetype)], mime()}}
             end,
+    {ok, CWD} = file:get_cwd(),
+    Pdf_dest = filename:join([CWD, "priv","pdf"]),
     cowboy_router:compile([
                            {'_', [
                                   Static("css"),
                                   Static("js"),
                                   Static("img"),
-                                  Static("pdf"),
+                                  {"/pdf/[...]", cowboy_static, {dir,list_to_binary(Pdf_dest),[{mimetypes, cow_mimetypes, all}]}},
                                   {"/", login_handler, []},
                                   {"/login", login_handler, []},
                                   {"/index", index_handler, []},
