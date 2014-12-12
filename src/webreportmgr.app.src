@@ -2,8 +2,8 @@
                              {description, "Hello, Upstart distributed Erlang service"},
                              {id, "WebReportMgr"},
                              {vsn, "0.1"},
-                             {applications, [kernel, stdlib, lager, cowboy]}, %
+                             {applications, [kernel, stdlib, lager, gproc, cowboy, sync]}, %
                              {modules, []},  % here erlang.mk inserts all application modules, not added automatically, required by relx
-                             {mod, {webreportmgr_app, []}}, % application callback module
+                             {mod, {webreportmgr, []}}, % application callback module
                              {registered, [webreportmgr]} % required by relx
                             ]}.

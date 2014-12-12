@@ -1,0 +1,197 @@
+html {
+	font-size: 15px; 
+}
+body {
+	font-size: 0.625em; 
+	font-family:"PT Sans";
+}
+.container {
+	width: 100%;
+}
+.headerTable {
+	width : 100%;
+	border : 1px solid #3899E6;
+}
+.headerTable table {
+	width : 100%;
+	border : 0;
+}
+.headerTable tr, .headerTable td, .headerTable  table tr, .headerTable  table td{
+	font-size: 1vw; 
+	border: 0;
+}
+
+.headerTableRight {
+	text-align : right;
+}
+.headerTableLeft {
+	text-align : left;
+	padding: 0 0 0 0.5em;
+}
+
+#tablpipetally {
+	width:100%;
+	border-collapse:collapse;
+}
+
+.tablheader {
+	margin: 3em auto; 
+	width:100%;
+	padding-top:10em;  
+	padding-bottom:1.5em;
+}
+
+#tabanom {
+	width:100%;
+	position: relative;
+	padding-top: 5em;
+}
+
+#totalanomal {
+	width:100%;
+	border-collapse:collapse;
+	border:1px solid #3899E6;
+} 
+#Anomcount {
+	border-collapse:collapse;
+} 
+#totalanomal td, #Anomcount td
+{
+	height: 1.2em;
+	font-size:1.4em;
+	text-align:center;
+	border:1px solid #3899E6;
+	/*        padding:0.3em 0.7em 0.2em 0.7em;*/
+	padding:0;
+}
+#Anomcount th, #totalanomal th 
+{
+	font-size:1.2em;
+	text-align:center;
+	padding-top:0.5em;
+	padding-bottom:0.4em;
+	background-color:#3899E6;
+	border:1px solid #3899E6;
+	color:#ffffff;
+}
+#totalanomal tr.alt td 
+{
+	color:#000000;
+	text-align:center;
+	background-color:#EAF2D3;
+}
+#totalanomal #comment {
+	text-align:right;
+	font-style:italic;
+}
+#totalanomal .addrepair  td {
+	height: 2em;
+}
+
+#introtab  {
+	width:100%;
+} 
+
+.prop_1_18 {
+	border: 1px solid #3899E6;
+	position: relative;
+	width: 100%;
+	padding-bottom: 5%;
+	height: 0;
+	margin-top: 3em;
+}
+.prop_1_10 {
+	position: relative;
+	width: 50%;
+	padding-bottom: 14%;
+	height: 10em;
+	float:left;
+	/*margin-top: 1em;*/
+}
+#index {
+	font-size:1.4em;
+}
+#headings {
+	width:100%;
+	height:100%;
+	padding-top:1em;
+
+}
+
+.prop_1_4 {
+	position: relative;
+	width: 100%;
+	padding-bottom: 35%;
+	height: 0;
+	margin-top: 3em;
+}
+.prop_1_3 {
+	position: relative;
+	width: 100%;
+	padding-bottom: 20%;
+	height: 0;
+}
+
+#map {
+	width:100%;
+	height:100%;
+	border: solid 1px #3899E6;
+	position:absolute;
+}
+
+#signal {
+	border: solid 1px #3899E6;
+	margin-top: 3em;
+}
+
+#bodegas {
+	border: solid 0.1em #3899E6;
+	margin-top: 1em;
+}
+
+.prop_fullsignal {
+	position: relative;
+	width: 100%;
+	padding-bottom: 60%;
+	height: 0;
+}
+
+#fullsignal {
+	margin-top: 3em; 
+	padding-top:0.15em;   
+	width:100%;
+	height:100%;
+	border: solid 1px #3899E6;
+	position:absolute;
+}
+
+.headerlist {
+	padding:1em 1.5em 0 1.5em;
+	font-size:1.8em;
+	font-weight:bold;
+	clear: left; 
+}
+
+
+#loadImg {
+	position:absolute; 
+	z-index:1000; 
+	top: 50%;
+	left: 50%;
+	margin-top: -3.3em;
+	margin-left: -3.3em;
+	display:none
+}
+#index div {
+	display:inline-block;
+}
+.navnext {
+	float:right;
+}
+.navmain {
+	position:relative;
+	left: 30%;
+}
+.navprev {
+	float:left;
+}

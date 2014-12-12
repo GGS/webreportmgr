@@ -1,43 +1,79 @@
 -module(webreportmgr).
 
--export([
-    start/0,
-    stop/0,
-    update_routes/0
-   ]).
+%For erl -s webrepotrmgr
+-export([start/0]).
 
--define(APPS, [crypto, ranch, cowlib, cowboy, gproc, webreportmgr]).
+% Application here
+-behavior(application).
+-export([start/2, stop/1, update_routes/0]).
+-export([dispatch_rules/0]).
+%% Supervisor is also here
+-behaviour(supervisor).
+-export([init/1]).
 
-%% ===================================================================
-%% API functions
-%% ===================================================================
+%% Helper macro for declaring children of supervisor
+-define(CHILD(I, Type), {I, {I, start_link, []}, permanent, 5000, Type, [I]}).
 
 start() ->
-    ok = lager:start(),
-    ok = ensure_started(?APPS),
-    ok = sync:go().
+    application:ensure_all_started(?MODULE). %Убеждаемся что всё стартовало из applications
+
+
+%% ===================================================================
+%% Application callback
+%% ===================================================================
+
+start(_,_) ->
+    supervisor:start_link({local, ?MODULE}, ?MODULE, root).
     
-stop() ->
-    sync:stop(),
-    ok = stop_apps(lists:reverse(?APPS)).
-   
+stop(_) ->
+    ok.
 update_routes() ->
-    Routes = webreportmgr_app:dispatch_rules(),
-    cowboy:set_env(http_listener, dispatch, Routes).
-
-
+    Routes = dispatch_rules(),
+    cowboy:set_env(?MODULE, dispatch, Routes).
 %% ===================================================================
-%% Internal functions
+%% Supervisor callbacks
 %% ===================================================================
 
-ensure_started([]) -> ok;
-ensure_started([App | Apps]) ->
-    case application:start(App) of
-        ok -> ensure_started(Apps);
-        {error, {already_started, App}} -> ensure_started(Apps)
-    end.
+init(root) ->
+    {ok, _} = start_cowboy(),
+    {ok, { {one_for_one, 5, 10}, []} }.
 
-stop_apps([]) -> ok;
-stop_apps([App | Apps]) ->
-    application:stop(App),
-    stop_apps(Apps).
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% Internals
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+start_cowboy() ->
+    Dispatch = dispatch_rules(),
+    Env = [{env, [{dispatch, Dispatch}]}],
+    Port = 7007,
+    Hooks = [{onresponse, fun webreportmgr_log:access_log_hook/4}],
+    Listpass = ["Operator1::oper1"],
+    ets:new(passwd,[set, named_table]),
+    lists:map(fun(X) ->  [H|T] = string:tokens(X,"::"),
+              ets:insert(passwd,{H,hd(T)}),
+              io:format("~p~n",ets:lookup(passwd, H))
+              end, Listpass),
+    task_queue:start_link(texreport_worker, [], [{workers_num, 4},{unique_tasks, false}]),
+    ets_report:init(report),
+    cowboy:start_http(?MODULE, 10, [{port, Port}], Env ++ Hooks).
+
+mime() -> [{mimetypes,cow_mimetypes,all}].
+dispatch_rules() ->
+    Static = fun(Filetype) ->
+                    {lists:append(["/", Filetype, "/[...]"]), cowboy_static, 
+                     {priv_dir, webreportmgr, [list_to_binary(Filetype)], mime()}}
+            end,
+    cowboy_router:compile([
+                           {'_', [
+                                  Static("css"),
+                                  Static("js"),
+                                  Static("img"),
+                                  Static("pdf"),
+                                  {"/", login_handler, []},
+                                  {"/login", login_handler, []},
+                                  {"/index", index_handler, []},
+                                  {"/upload", upload_handler, []},
+                                  {"/websocket", ws_handler, []},
+                                  {'_', notfound_handler, []}
+                                 ]}
+                          ]). 
+    
