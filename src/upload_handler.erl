@@ -31,6 +31,7 @@ multipart(Req,OldForm) ->
                                    {ok, CWD} = file:get_cwd(),
                                    io:format("---Parsing:--- ~p ---~p~n",[_FieldName, _Filename]),
                                    User = maps:get(<<"user">>,OldForm),
+                                   ReportName = maps:get(<<"reportname">>, OldForm),
                                    Path = filename:join([CWD, "priv","users", binary_to_list(User)]),
                                    {ok, Dirname, FullFilename} = assert_config(Path, binary_to_list(_Filename), lists:seq(1, 100)),
                                    {ok, Xmlreport} = file:open(FullFilename, [write]),
@@ -41,7 +42,7 @@ multipart(Req,OldForm) ->
                                       true ->
                                            ok
                                    end,
-                                   {ok, Key} = ets_report:insert(FullFilename,User),
+                                   {ok, Key} = ets_report:insert(FullFilename,ReportName, User),
                                    io:format("---Dirname-~p-Key-~p~n",[Dirname, Key]),
                                    lager:log(notice, [{pid, self()}], "---Dirname-~p-Key-~p~n", [Dirname, Key]),
                                    Msg="Файл - "++filename:basename(FullFilename) ++ " загружен",

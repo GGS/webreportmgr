@@ -1,5 +1,4 @@
 -module(index_handler).
-%-behaviour(cowboy_handler).
 %% Cowboy_http_handler callbacks
 -export([
          init/3,
@@ -10,7 +9,7 @@
          terminate/3
 ]).
 
-init(_Type, Req, []) ->
+init(_Type, _Req, []) ->
    % {ok, Req, undefined_state}.
 {upgrade, protocol, cowboy_rest}.
 

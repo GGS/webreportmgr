@@ -25,7 +25,7 @@ if(!("WebSocket" in window)){
     $('#status').append('<p><span style="color: red;">websockets are not supported </span></p>');
     $("#navigation").hide();  
 } else {
-    $('#status').append('<p><span style="color: green;">websockets are supported </span></p>');
+    //$('#status').append('<p><span style="color: green;">websockets are supported </span></p>');
     connect();
 };
 //$("#connected").hide(); 	
@@ -90,8 +90,8 @@ function onMessage(evt) {
     var data = JSON.parse(evt.data.replace(/\\/gi,'&#92;').replace(/\[\w+\s\w+:\w+:\w+\]:/,''));
     console.log(data.length);
 if(data.command) {
-        console.log(atob(data.text));
-       var code= eval(atob(data.text));
+        console.log(decodeURIComponent(escape(window.atob(data.text))));
+       var code= eval(decodeURIComponent(escape(window.atob(data.text))));
     } else {
         showScreen(strings[data.event].replace(/\[([a-z]+)\]/g, '<span class="$1">').replace(/\[\/[a-z]+\]/g, '</span>').replace(/\%time\%/, data.time).replace(/\%info\%/, data.info).replace(/\%name\%/, data.name).replace(/\%text\%/, unescape(data.text).replace('<', '&lt;').replace('>', '&gt;')) + '<br>');
         //showScreen(strings[data[0]].replace(/\[([a-z]+)\]/g, '<span class="$1">').replace(/\[\/[a-z]+\]/g, '</span>').replace(/\%time\%/, data[3]).replace(/\%info\%/, data.info).replace(/\%name\%/, data[2]).replace(/\%text\%/, unescape(data[1]).replace('<', '&lt;').replace('>', '&gt;')) + '<br>');  
@@ -126,9 +126,13 @@ function checkDel(sender) {
 }
 function checkInfo(sender) {
     var tr = sender.parentNode;
-    alert(tr.getAttribute('id'));
-}
-
+    $('#logcontainer').css('visibility','visible');
+    //alert(tr.getAttribute('id'));
+   }
+function delLog(sender) {
+    $(sender).css('visibility','hidden');
+    //alert(tr.getAttribute('id'));
+   }
 function Message (txt) {
 var msg = {
             event: "messageSent",
@@ -138,3 +142,4 @@ var msg = {
     };
     return JSON.stringify(msg);
    }
+

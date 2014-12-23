@@ -6,7 +6,7 @@
          terminate/3
 ]).
 
-init(_Type, Req, []) ->
+init(_Type, _Req, []) ->
    
     %#{client := ClientCookie , session_id:= SessionCookie} 
     %    =cowboy_req:match_cookies([client, session_id], Req),

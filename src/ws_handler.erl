@@ -1,6 +1,5 @@
 -module(ws_handler).
 %-behaviour(cowboy_websocket_handler).
--include("webserver.hrl").
 -export([init/3]).
 -export([websocket_init/3]).
 -export([websocket_handle/3]).
@@ -35,7 +34,6 @@ websocket_init(_Type, Req, _Opts) ->
 %
 websocket_handle({text, Msg}, Req, State) ->
     io:format("--Receive --~p ~n", [Msg]),
-    %{ok, RegDir} = re:compile("(\/[a-zA-Z0-9]+)+"),
     {ok, RegDir} = re:compile("[0-9][0-9][0-9]+"),
     case re:run(Msg, RegDir,[ global, {capture,[0], list}]) of  
         {match, [Link]}  ->

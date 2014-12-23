@@ -19,9 +19,10 @@ process_task({gen_report, Dirname, Key}, State) ->
     Cmd ="/home/DC/ggs/ReportCraft/report dir="++Dirname++" lang=RU type=nogui",
     ets_report:update(Key, "working"),
     ets_report:info(ets:first(report)),
-    run(Cmd),
+    run(Cmd,Key),
     %test(Dirname),
     {_, FileList} = filedir(Dirname,Key),
+    lager:log(notice, [{pid, self()}], "File ready for use --~s", [FileList]),
     ets_report:update(Key, "done"), %Здесь меняется статус задания
     ets_report:info(ets:first(report)),
     {ok, State}.
@@ -37,6 +38,7 @@ code_change(_OldVsn, State, _Extra) ->
 filedir(Dirname, Key) ->
     {ok, CWD} = file:get_cwd(),
     Fdest = filename:join([CWD, "priv","pdf"]),
+    filelib:ensure_dir(Fdest++"/1"),
     List = filelib:wildcard(Dirname++"/*.{pdf,xls*}"),
     FileList = lists:map(fun(X) -> filename:basename(X) end,List),
     lists:map(fun(Z) -> file:copy(Dirname++"/"++Z,Fdest++"/"++Key++"-"++Z) end,FileList), 
@@ -47,22 +49,24 @@ filedir(Dirname, Key) ->
                         {_, Message} = ws_handler:message(unicode:characters_to_binary(Msg),"info"),
                         gproc:send({p, l, {pubsub,wsbroadcast}}, {self(), {pubsub,wsbroadcast}, Message}) 
               end,ListKeyFile),
-    {ok, ListKeyFile}.
+    {ok, FileList}.
 
-run(Command) ->
+run(Command, Key) ->
     Port = open_port({spawn, Command},
                      [{line, 160}, exit_status, stderr_to_stdout, in, binary]),
-    run(Port, [], <<>>).
-run(Port, Lines, OldLine) ->
+    run(Port, [], <<>>, Key).
+run(Port, Lines, OldLine, Key) ->
     receive
         {Port, {data, Data}} ->
             case Data of
                 {eol, Line} ->
                     %Pid! {dwnl, Line},
-                    run(Port, [<<OldLine/binary, Line/binary>> | Lines], <<>>);
+                    ets:insert(logtex,{Key, Line}),
+                    run(Port, [<<OldLine/binary, Line/binary>> | Lines], <<>>, Key);
                 {noeol, Line} ->
                     %Pid! {dwnl, Line},
-                    run(Port, Lines, <<OldLine/binary, Line/binary>>)
+                    ets:insert(logtex,{Key, Line}),
+                    run(Port, Lines, <<OldLine/binary, Line/binary>>, Key)
             end;
         {Port, {exit_status, 0}} ->
             {ok, Lines};

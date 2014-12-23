@@ -1,21 +1,25 @@
 #metacontainer {
-margin-top:40px;
+margin-top:50px;
+}
+#chatinput {
+margin-top:7px;
 }
 #container0 {
 width: 20%;
 margin:10px;
 float: left
 }
+/*
 #container2 {
 width: 40%;
 margin:10px;
 float: left
-}
+} 
 #container3 {
 width: 35%;
 margin:10px;
 float: left
-}
+} */
 .time {
 color:#C2C2C2;
 }
@@ -26,19 +30,89 @@ color:#66CC66;
 width: 250px;
 }
 #send_txt {
-width: 300px;
+width: 555px;
 }
 button {
 margin-bottom: 10px;
 margin-left: 5px;
 }
 table {
+margin:20px;
 width:100%;
 }
 
 table form {
 margin:0px;
 }
+/*
 th, td {
 border: 1px solid;
+}*/
+
+/*.lightbox1 {
+  display: none;
+} */
+.lightbox1 {  /* надпись "образец" */
+  border-bottom: 1px dashed;
+  cursor: pointer;
+}
+#logcontainer {  /* коробка */
+  visibility: hidden;
+  position: fixed;
+  z-index: 11;
+  top: 50px;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  overflow: auto;
+  background: rgba(0,0,0,.5);
+  text-align: center;
+  line-height: 100vh;
+  cursor: zoom-out;
+}
+
+.lightbox1:checked + label + * {
+  visibility: visible;
+}
+
+#logcontainer  > :first-child {  /* блок с окном */
+  position: relative;
+  display: inline-block;
+  max-width: calc(100% - (8px + 2px)*2);
+  margin: 8px;
+  border: 2px solid rgb(51, 103, 153);
+  box-shadow: 0 0 0 8px rgba(255,255,255,.2);
+  background: #fff;
+  text-align: left;
+  line-height: normal;
+  vertical-align: middle;
+}
+#texlogheader  {  /* заголовок */
+  position: relative;
+  padding: .5em 4em .5em .5em;
+  overflow: hidden;
+  white-space: nowrap;
+  word-wrap: normal;
+  text-overflow: ellipsis;
+  color: #fff;
+  background: linear-gradient(#669acc 50%, #5589bb 50%);
+}
+#texlogheader  label {  /* крестик "закрыть" */
+  position: absolute;
+  top: calc(.5em - 2px);
+  right: calc(.5em - 2px);
+  font-weight: 600;
+  cursor: pointer;
+}
+.lightbox1 + label + * > * > :last-child > :last-child {  /* поле после заголовка */
+  padding: .5em;
+}
+.lightbox1 + label + * > * > :last-child > :last-child label {
+  position: relative;
+  z-index: 1;
+  cursor: pointer;
+}
+.lightbox1 + label + * label > button {
+  position: relative;
+  z-index: -1;
 }

@@ -2,36 +2,25 @@
 {% block content %}
 <script type="text/javascript">
 function init(){
-$('body').append('<div id="metacontainer">')
-$('#metacontainer').append('<div id="container0">')
-$('#metacontainer').append('<div id="container2">')
-$('#metacontainer').append('<div id="container3">')
-$('#container0').append('<div id="header">')
-//$('#header').append('<h3>Печатный отчёт ...</h3>')
-$('#header').append('<div id="status">')
-$('#container0').append('<div id="navigation">')
-$('#navigation').append('<p id="connecting">')
-$('#connecting').append('<input type="text" id="server" value=""></input><button type="button" onclick="toggle_connection()">connection</button>')
-$('#container0').append('<div id="connected">')
-$('#connected').append('<p><input type="text" id="send_txt"></input><button type="button" onclick="sendTxt();">send</button></p>')
-//$('#connected').append('<div class="btn-group" data-toggle="buttons"><label class="btn btn-active"id ="ltype1">')
-//$('#ltype1').append('<input type="radio" id="type1" name="typereport" value="full" checked="">Full')
-//$('#connected').append('<label class="btn btn-default" id="ltype2">') 
-//$('#ltype2').append('<input type="radio" id="type2" name="typereport" value="other">Other')
-$('#container2').append('<div id="header_right">')
-//$('#header_right').append('<h3>Статус отчёта</h3>')
+$('body').append('<div class = row id="metacontainer">')
+//$('#metacontainer').append('<div  class ="col-lg-12"  id="container0">')
+$('body').append('<div  class = row id="container1">')
+$('#metacontainer').append('<div class = "col-lg-8" id="container2">')
+$('#metacontainer').append('<div class = "col-lg-4" id="container3">')
 $('#container2').append('<div id="tbl">')
-$('#tbl').append('<table><col style="width:20%"><col style="width:50%"><col style="width:20%"><col style="width:10%"><thead><tr><th>User</th><th>Report</th><th>Status</th><th>Del</th></tr></thead><tbody id="tblstatus"></tbody></table>')
+$('#tbl').append('<table class="table table-bordered"><col style="width:20%"><col style="width:50%"><col style="width:20%"><col style="width:10%"><thead><tr><th>User</th><th>Report</th><th>Status</th><th>Del</th></tr></thead><tbody id="tblstatus"></tbody></table>')
 $('#container3').append('<div id="header_right2">')
-//$('#header_right2').append('<h3>Журнал ...</h3>')
 $('#container3').append('<div id="content">')
 $('#content').append('<button id="clear" onclick="clearScreen()">Clear text</button>')
 $('#content').append('<div id="output">')
 $('#output').css("margin-top","20px")
-document.querySelector('#send_txt').onkeypress = function(e) {
-    if (e.which == '13') {sendTxt();}};
+$('#container1').append('<div id="logcontainer" onclick="delLog(this)">')
+$('#logcontainer').append('<div class="logblock">')
+$('.logblock').append('<div id="texlogheader">')
+$('.logblock').append('<div id="texlog">')
 }
 eval(init());
+
 </script>
 
 {% endblock %}
