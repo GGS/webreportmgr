@@ -56,18 +56,17 @@ function toggle_connection(){
 function sendTxt() {
    
     if(websocket.readyState == websocket.OPEN){
-      /*  if(document.getElementById('type1').checked) {
-            console.log("Full");
-        } else {
-            console.log("Other");
-        } */
+      
         txt = $("#send_txt").val();
-        websocket.send(Message(txt));
+        msg = Message(txt);
+        //websocket.send(Message(txt));
         document.querySelector('#send_txt').value = '';
-        //websocket.send(Bert.encode(Bert.tuple(msg.event,msg.text, msg.name, msg.time)));
+        websocket.send(Bert.encode(Bert.tuple(msg.event,msg.text, msg.name, msg.time)));
         //websocket.send(Bert.encode(utf8_toByteArray(msg.text)));
         //showScreen('sending: ' + txt); 
-        //console.log(Bert.binary_to_list(Bert.encode(Bert.tuple(msg.event,msg.text, msg.name, msg.time))));
+        console.log(Bert.binary_to_list(Bert.encode(Bert.tuple(Bert.atom(msg.event),msg.text,
+        msg.name, msg.time))));
+        
     } else {
         showScreen('websocket is not connected'); 
     };
@@ -140,6 +139,7 @@ var msg = {
             name:   getCookie("username"),
             time: clock()
     };
-    return JSON.stringify(msg);
+    //return JSON.stringify(msg);
+    return msg
    }
 

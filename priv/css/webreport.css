@@ -71,10 +71,6 @@ border: 1px solid;
   cursor: zoom-out;
 }
 
-.lightbox1:checked + label + * {
-  visibility: visible;
-}
-
 #logcontainer  > :first-child {  /* блок с окном */
   position: relative;
   display: inline-block;
