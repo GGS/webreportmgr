@@ -6,7 +6,8 @@
 -export([websocket_info/3]).
 -export([websocket_terminate/3]).
 -export([message/2]).
-
+-export([wr_to_json/3]).
+%-record(sentmsg, {msgatom, action, txt, user, time}).
 -define(WSKey,{pubsub,wsbroadcast}).
 
 init({tcp, http}, _Req, _Opts) ->
@@ -14,10 +15,10 @@ init({tcp, http}, _Req, _Opts) ->
 
 websocket_init(_Type, Req, _Opts) ->
     {Username, Req2} =  cowboy_req:cookie(<<"username">>, Req),
-    %{_,Time_event} = time_info(),
-    Str= <<"{\"event\":\"connected\", \"name\":\"",Username/binary, "\",\"time\":\"",Username/binary,"\"}">>,
+    {_, Str} = wr_to_json("connected",Username, "Ok!"),
+    {_, Message} = message("data",Str),
     gproc:reg({p, l, ?WSKey}),
-    erlang:start_timer(1000, self(), Str),
+    erlang:start_timer(1000, self(), Message),
     lager:log(notice, [{pid, self()}], "Connected --~s", [Username]),
     io:format("--Pid websocket open --~p ~n", [self()]),
     F_id = ets:first(report),
@@ -33,24 +34,49 @@ websocket_init(_Type, Req, _Opts) ->
 %Функция обработки входящего сообщение (реакция на клиентский запрос)
 %
 websocket_handle({text, Msg}, Req, State) ->
-    io:format("--Receive --~p ~n", [Msg]),
-    {ok, RegDir} = re:compile("[0-9][0-9][0-9]+"),
-    case re:run(Msg, RegDir,[ global, {capture,[0], list}]) of  
-        {match, [Link]}  ->
-            io:format("--Match --~p~n",[unicode:characters_to_list(Link)]),
-            ets_report:delete(unicode:characters_to_list(Link)),
-            ok;
-_ ->
-            io:format("--No match text --~n"),
-            failed,
-            gproc:send({p, l, ?WSKey}, {self(), ?WSKey, << Msg/binary >>})
-    end,    
-    
-    {_, Text, _, _} = list_to_tuple(string:tokens(re:replace(Msg,"\"","",[global,{return, list}]),",")),         
-    io:format("--txt --~p~n",[re:replace(Text, "text:","",[{return, list}])]),
-                                        %{reply, {text, << Msg/binary >>}, Req, State};
-    {ok, Req, State};
+   
+    if Msg == <<"PING">> ->
+            {ok, Req, State}; 
+       true ->
+            io:format("--Receive --~p ~n", [Msg]),
+            {ok, RegDir} = re:compile("[0-9][0-9][0-9]+"),
+            case re:run(Msg, RegDir,[ global, {capture,[0], list}]) of  
+                {match, [Link]}  ->
+                    io:format("--Match --~p~n",[unicode:characters_to_list(Link)]),
+                    ok;
+                _ ->
+                    io:format("--No match text --~n"),
+                    failed,
+                    Text = binary_to_list(Msg), 
+                    io:format("--txt --~p~n",[Text]),
+                    {_, Message} = message("data",Text),
+                    io:format("--OOO text --~p~n",[Message]),
+                    gproc:send({p, l, ?WSKey}, {self(), ?WSKey, [Message]})
+            end,    
+                     %{reply, {text, << Msg/binary >>}, Req, State};
+            {ok, Req, State}
+    end;
 
+websocket_handle({binary, Msg}, Req, State) ->
+    Cmsg = binary_to_term(Msg),
+    case  Cmsg of
+        {messageSent,Text,Username,_} = Cmsg -> 
+            {_, Str} = wr_to_json(messageReceived,Username, Text),
+            io:format("--Receive --~p ~n", [Cmsg]),
+   % Cmd="ws.send(\"Send Back This String\");",
+            {_, Message} = message("data", Str),
+            io:format("--Text --~p ~n", [Message]),
+            gproc:send({p, l, {pubsub,wsbroadcast}}, {self(), {pubsub,wsbroadcast}, Message});
+        {delReport,Key,_,_} = Cmsg -> 
+            ets_report:delete(Key);
+        {viewLog,Key,_,_} = Cmsg -> 
+            io:format("--Receive --~p ~n", [Cmsg]),
+            ets_report:logtex(Key);
+        _->
+            ok
+    end,
+    {ok, Req, State};
+   
 websocket_handle(_Data, Req, State) ->
     io:format("--Data --~p~n",[_Data]),
     {ok, Req, State}.
@@ -58,18 +84,16 @@ websocket_handle(_Data, Req, State) ->
 %Обработка сообщений эрланга
 %
 websocket_info(Info, Req, State) ->
-    %io:format("--Pid erlang info --~p ~n", [self()]),
     case Info of
         {_PID,?WSKey,Msg} ->
             {reply, {text, Msg}, Req, State, hibernate};
         {timeout, _Ref, Msg} ->
-                        %erlang:start_timer(10000, self(), Message),
             {reply, {text, Msg}, Req, State};
         {dwnl, Msg} ->
-            {_, Message} = message(unicode:characters_to_binary(Msg),"info"),
+            {_, Message} = message("data", Msg),
             {reply, {text, Message}, Req, State};
         {command, Msg} ->
-            {_, Message} = message(list_to_binary(Msg), "command"),
+            {_, Message} = message( "eval", Msg),
             {reply, {text, Message}, Req, State};
         _ ->
             {ok, Req, State}
@@ -81,11 +105,13 @@ time_info() ->
     {{_,_,_},{Hr,Min,Sec}} = calendar:now_to_local_time(now()),
     A = io_lib:format("~p:~p:~p", [Hr,Min,Sec]),
     {ok, A}.
-message (Cyr_str, Command) ->
-    {_,Time_event} = time_info(),
-    %Cyr_str = unicode:characters_to_binary(Cyr_str),
-    Tail_str = list_to_binary(string:concat(string:concat("\",\"time\":\"",Time_event),"\"}")),
-    Head_str =list_to_binary(io_lib:format("{\"event\":~p, ~p:\"INFO\", \"text\":\"",[Command,Command])),
-    %io:format("--Coding --~p ~n", [[Head_str,Cyr_str,Tail_str]]),
-    {ok, [Head_str,Cyr_str,Tail_str]}.
 
+message (Type, Data) ->
+    Term = binary_to_list(term_to_binary(Data)),
+    {ok, list_to_binary(io_lib:format("{~p:~p}",[Type,Term]))}.
+
+wr_to_json(Event,Username,Text) ->
+    {_,Time_event} = time_info(),
+    Str =  unicode:characters_to_list(io_lib:format("{\"event\":\"~s\", \"name\":\"~s\",\"text\":\"~s\",\"time\":\"~s\"}",[Event, Username,  Text, Time_event])),
+    io:format("Json is --~s~n",[Str]),
+    {ok, Str}.

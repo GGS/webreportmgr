@@ -1,51 +1,22 @@
-function clock() {
-var d = new Date();
-var hours = d.getHours();
-var minutes = d.getMinutes();
-var seconds = d.getSeconds();
 
-if (hours <= 9) hours = "0" + hours;
-if (minutes <= 9) minutes = "0" + minutes;
-if (seconds <= 9) seconds = "0" + seconds;
+var transition = {pid: '', port:'7007'};
+var active = false,
+    protocol    = window.location.protocol == 'https:' ? "wss://" : "ws://",
+    querystring = window.location.pathname + window.location.search,
+    host        = null == transition.host ? window.location.hostname : transition.host,
+    port        = null == transition.port ? window.location.port : transition.port,
+    protos = [ $bert, $client ];
 
-return date_time = +hours + ":" + minutes + ":" + seconds;
-}
-strings = {
-    'connected': '[sys][time]%time%[/time]: Вы успешно соединились с сервером как [user]%name%[/user][/sys]',
-    'messageSent': '[out][time]%time%[/time]: [user]%name%[/user]: %text%[/out]',
-    'info': '[out][time]%time%[/time]: [info]%info%[/info]: %text%[/out]',
-    'messageReceived': '[in][time]%time%[/time]: [user]%name%[/user]: %text%[/in]',
-    'userSplit': '[sys][time]%time%[/time]: Пользователь [user]%name%[/user] покинул чат.[/sys]'
-}
-//'command': '[out][time]%time%[/time]: [command]%command%[/command]: Команда на выполнение %text%[/out]',
 $(document).ready(init);
 function init(){
-$('#server').val("ws://" + window.location.host + "/websocket");
-if(!("WebSocket" in window)){  
-    $('#status').append('<p><span style="color: red;">websockets are not supported </span></p>');
-    $("#navigation").hide();  
-} else {
-    //$('#status').append('<p><span style="color: green;">websockets are supported </span></p>');
-    connect();
+    $('#server').val("ws://" + window.location.host + "/websocket");
+    ws = new bullet(protocol + host + ":" + port + "/websocket");
+    ws.onmessage = function (evt) { for (var i=0;i<protos.length;i++) { p = protos[i]; if (p.on(evt,p.do).status == "ok") return; } };
+    ws.onopen = function() { if (!active) { console.log('Connect'); ws.send(['N2O', transition.pid]); active=true; } };
+    ws.ondisconnect = function() { active = false; console.log('Disconnect'); };
 };
-//$("#connected").hide(); 	
-//$("#content").hide(); 	
-};
-function connect()
-{
-    wsHost = $("#server").val()
-    websocket = new WebSocket(wsHost);
-    //websocket.binaryType = "arraybuffer";
-    showScreen('<b>Connecting to: ' +  wsHost + '</b>'); 
-    websocket.onopen = function(evt) { onOpen(evt) }; 
-    websocket.onclose = function(evt) { onClose(evt) }; 
-    websocket.onmessage = function(evt) { onMessage(evt) }; 
-    websocket.onerror = function(evt) { onError(evt) }; 
-};  
+ 	
 
-function disconnect() {
-    websocket.close();
-}; 
 function toggle_connection(){
     if(websocket.readyState == websocket.OPEN){
         disconnect();
@@ -54,23 +25,14 @@ function toggle_connection(){
     };
 };
 function sendTxt() {
-   
-    if(websocket.readyState == websocket.OPEN){
-      
-        txt = $("#send_txt").val();
-        msg = Message(txt);
-        //websocket.send(Message(txt));
-        document.querySelector('#send_txt').value = '';
-        websocket.send(Bert.encode(Bert.tuple(msg.event,msg.text, msg.name, msg.time)));
-        //websocket.send(Bert.encode(utf8_toByteArray(msg.text)));
-        //showScreen('sending: ' + txt); 
-        console.log(Bert.binary_to_list(Bert.encode(Bert.tuple(Bert.atom(msg.event),msg.text,
-        msg.name, msg.time))));
-        
-    } else {
-        showScreen('websocket is not connected'); 
-    };
+    txt = $("#send_txt").val();
+    msg = Message("messageSent", txt);
+    document.querySelector('#send_txt').value = '';
+    ws.send(enc(tuple(atom(msg.event), utf8_toByteArray(msg.text), msg.name, msg.time)));
+    //showScreen('sending: ' +  utf8_toByteArray(msg.text)); 
+  
 };
+
 function onOpen(evt) { 
     showScreen('<span style="color: green;">CONNECTED </span>'); 
      console.log(evt);
@@ -81,21 +43,7 @@ function onClose(evt) {
     showScreen('<span style="color: red;">DISCONNECTED </span>');
 };  
 
-function onMessage(evt) { 
-    
-    console.log(evt.data.replace(/\\/gi,'&#92;').replace(/\[\w+\s\w+:\w+:\w+\]:/,'').replace(/\[([a-z]+)\]/,''));
-    //console.log(JSON.parse(Bert.decode(evt.data)));
-    //var data = JSON.parse(Bert.decode(evt.data));
-    var data = JSON.parse(evt.data.replace(/\\/gi,'&#92;').replace(/\[\w+\s\w+:\w+:\w+\]:/,''));
-    console.log(data.length);
-if(data.command) {
-        console.log(decodeURIComponent(escape(window.atob(data.text))));
-       var code= eval(decodeURIComponent(escape(window.atob(data.text))));
-    } else {
-        showScreen(strings[data.event].replace(/\[([a-z]+)\]/g, '<span class="$1">').replace(/\[\/[a-z]+\]/g, '</span>').replace(/\%time\%/, data.time).replace(/\%info\%/, data.info).replace(/\%name\%/, data.name).replace(/\%text\%/, unescape(data.text).replace('<', '&lt;').replace('>', '&gt;')) + '<br>');
-        //showScreen(strings[data[0]].replace(/\[([a-z]+)\]/g, '<span class="$1">').replace(/\[\/[a-z]+\]/g, '</span>').replace(/\%time\%/, data[3]).replace(/\%info\%/, data.info).replace(/\%name\%/, data[2]).replace(/\%text\%/, unescape(data[1]).replace('<', '&lt;').replace('>', '&gt;')) + '<br>');  
-    }      
-}; 
+
 function onError(evt) {
     showScreen('<span style="color: red;">ERROR: ' + evt.data+ '</span>');
 };
@@ -121,25 +69,26 @@ function getCookie(cname) {
 }
 function checkDel(sender) {
     var tr = sender.parentNode.parentNode.parentNode;
-    websocket.send(Message(tr.getAttribute('id')));
-}
+    msg = Message("delReport", tr.getAttribute('id'));
+    ws.send(enc(tuple(atom(msg.event), utf8_toByteArray(msg.text), msg.name, msg.time)));
+    }
 function checkInfo(sender) {
     var tr = sender.parentNode;
+    msg = Message("viewLog", tr.getAttribute('id'));
+    ws.send(enc(tuple(atom(msg.event), utf8_toByteArray(msg.text), msg.name, msg.time)));
     $('#logcontainer').css('visibility','visible');
-    //alert(tr.getAttribute('id'));
-   }
+}
 function delLog(sender) {
     $(sender).css('visibility','hidden');
     //alert(tr.getAttribute('id'));
    }
-function Message (txt) {
-var msg = {
-            event: "messageSent",
-            text: txt,
-            name:   getCookie("username"),
-            time: clock()
+function Message (event, txt) {
+    var msg = {
+        event: event,
+        text: txt,
+        name:   getCookie("username"),
+        time: clock()
     };
-    //return JSON.stringify(msg);
-    return msg
-   }
+    return msg;
+}
 

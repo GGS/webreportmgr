@@ -10,7 +10,7 @@ include erlang.mk
 .PHONY: run
 
 run:
-	@(erl -pa `pwd`/ebin deps/*/ebin -config webreportmgr.config -s webreportmgr )
-	#@(erl -pa `pwd`/ebin deps/*/ebin -s webreportmgr )
+	#@(erl -pa `pwd`/ebin deps/*/ebin -config webreportmgr.config -s webreportmgr )
+	@(erl -pa `pwd`/ebin deps/*/ebin -s webreportmgr )
 
 

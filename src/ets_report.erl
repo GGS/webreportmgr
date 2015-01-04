@@ -30,7 +30,7 @@ info(Key) ->
             info(ets:next(report, Key))
     end,     
     {ok, Cmd} = cmd(Key),
-    {_, Message} = ws_handler:message(list_to_binary(Cmd),"command"),
+    {_, Message} = ws_handler:message("eval", Cmd),
     gproc:send({p, l, {pubsub,wsbroadcast}}, {self(), {pubsub,wsbroadcast}, Message}), 
     ok.
 info(Key, Pid) ->
@@ -54,14 +54,12 @@ delete(Key) ->
     lists:map(fun(H) -> file:delete(H) end, Pdflist),
     ets:match_delete(report, {report, '_', '_','_',Key,'_'}),
     ets:match_delete(pdflist, {Key,'_'}),
-    Cmd = base64:encode_to_string("$('#"++Key ++"').remove()"),
-    {_, Message} = ws_handler:message(list_to_binary(Cmd),"command"),
+    Cmd =  binary_to_list(unicode:characters_to_binary("$('#"++Key ++"').remove()")),
+    {_, Message} = ws_handler:message("eval", Cmd),
     gproc:send({p, l, {pubsub,wsbroadcast}}, {self(), {pubsub,wsbroadcast}, Message}), 
     ok.
 cmd(Key) ->
    [{report,_Path,ReportName,User,Key,Status}] = ets:lookup(report,Key),
-   
-    %io:format("~p--~p~n",[filename:basename(Name),Pri]),
     Cond = ets:match(pdflist,{Key,'$1'}),
     if Cond =/= [] ->
             Insert = lists:append(lists:map(fun(H) -> 
@@ -69,19 +67,22 @@ cmd(Key) ->
                                                         filename:basename(H)++"\">"++
                                                         unicode:characters_to_list(ReportName)++
                                                         "</a></p>" end, Cond)),
-            Check="<form><input type=\"checkbox\" class=\"checked\" onchange=\"checkDel(this);\"></form>";
+            Check="<form><input type=\"checkbox\" class=\"checked\" onchange=\"checkDel(this);\"></form>",
+            CheckInfo="";
        true ->
             Insert = unicode:characters_to_list(ReportName),
-            io:format("Insert is --~p~n",[Insert]),
+            io:format("Insert is --~ts~n",[Insert]),
             Check="",
+            CheckInfo="class=\"lightbox1\" id=\""++User++Key++"\"onclick=\"checkInfo(this)\";",
             ok
     end,
-    Cmd = base64:encode_to_string(unicode:characters_to_binary("$('#"++Key
-                                  ++"').remove();$('#tblstatus').append('<tr id=\""++Key
-                                  ++"\"><td class=\"lightbox1\" id=\""++User++Key++"\"onclick=\"checkInfo(this)\";>"++User++"</td><td>"
-                                  ++Insert
-                                  ++"</td><td>"++Status
-                                  ++"</td><td>"++Check++"</td></tr>')")) ,
+    Cmd = binary_to_list(unicode:characters_to_binary("$('#"++Key
+                                       ++"').remove();$('#tblstatus').append('<tr id=\""++Key
+                                       ++"\"><td "++CheckInfo++">"++User++"</td><td>"
+                                       ++Insert
+                                       ++"</td><td>"++Status
+                                       ++"</td><td>"++Check++"</td></tr>')")) ,
+    %io:format("Command_ets is --~ts~n",[Cmd]),
     {ok, Cmd}.
 
 logtex(Key) ->
@@ -91,7 +92,7 @@ logtex(Key) ->
        true ->
              Insert = ""
     end,
-    Cmd = base64:encode_to_string("$('#texlogheader').empty();$('#texlog').empty();$('#texlogheader').append('Output for "++Key++"<label for=\"dva\">x</label>');$('#texlog').append('"++ Insert++"')"),
-    {_,Message} = ws_handler:message(list_to_binary(Cmd),"command"),
+    Cmd = binary_to_list(unicode:characters_to_binary("$('#texlogheader').empty();$('#texlog').empty();$('#texlogheader').append('Output for "++Key++"<label for=\"dva\">x</label>');$('#texlog').append('"++ Insert++"')")),
+    {_,Message} = ws_handler:message("eval", Cmd),
     gproc:send({p, l, {pubsub,wsbroadcast}}, {self(), {pubsub,wsbroadcast}, Message}), 
     ok.

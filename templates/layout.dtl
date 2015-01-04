@@ -6,8 +6,10 @@
     <link rel='stylesheet' href="/css/bootstrap.min.css">
     <link rel='stylesheet' href="/css/webreport.css">
     <script type="text/javascript" src="/js/zepto.min.js"></script>
+    <script type="text/javascript" src="/js/bullet.js"></script>
      <script type="text/javascript" src="/js/utf8.js"></script>
     <script type="text/javascript" src="/js/bert.js"></script>
+    <script type="text/javascript" src="/js/client.js"></script>
     <script type="text/javascript" src="/js/socket.js"></script>
   </head>
   <body>
