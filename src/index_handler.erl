@@ -34,7 +34,7 @@ trypass(User) ->
      io:format("----~p~n",[list_to_binary(Passw)]),
             {ok, list_to_binary(Passw)};
         _->
-            io:format("~p-~n",["Not User in ets"]),
+            io:format("~s-~n",["Not User in ets"]),
             {false, User}
     end.
 content_types_provided(Req, State) ->

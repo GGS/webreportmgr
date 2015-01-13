@@ -7,7 +7,7 @@
     <link rel='stylesheet' href="/css/webreport.css">
     <script type="text/javascript" src="/js/zepto.min.js"></script>
     <script type="text/javascript" src="/js/bullet.js"></script>
-     <script type="text/javascript" src="/js/utf8.js"></script>
+    <script type="text/javascript" src="/js/utf8.js"></script>
     <script type="text/javascript" src="/js/bert.js"></script>
     <script type="text/javascript" src="/js/client.js"></script>
     <script type="text/javascript" src="/js/socket.js"></script>
@@ -37,14 +37,7 @@
           onclick="sendTxt();">Send</button> 
         </div></li>
       </ul>
-      <form class="navbar-form navbar-right" role="form">
-        <div class="form-group">
-          <input type="text" class="form-control" id="server" value="">
-        </div>
-        
-        <button class="btn btn-default" type="button"
-                onclick="toggle_connection()">connection</button>
-      </form>
+      
       
         <ul class="nav navbar-nav navbar-right">
           <li><p class="navbar-text"><strong>Welcome, </strong><span id="current-user-name">{{currentUser}}</span></p></li>

@@ -46,7 +46,7 @@ multipart(Req,OldForm) ->
                                    io:format("---Dirname-~p-Key-~p~n",[Dirname, Key]),
                                    lager:log(notice, [{pid, self()}], "---Dirname-~p-Key-~p~n", [Dirname, Key]),
                                    Msg=binary_to_list(unicode:characters_to_binary("Файл - "++filename:basename(FullFilename) ++ " загружен")),
-                                   {_, Str} =ws_handler:wr_to_json(messageReceived,"info", Msg),
+                                   {_, Str} =ws_handler:wr_to_json(info,"info", Msg),
                                    {_, Message} = ws_handler:message("data",Str),
                                    gproc:send({p, l, {pubsub,wsbroadcast}}, {self(), {pubsub,wsbroadcast}, Message}), 
                                    Cond = erlang:whereis(task_queue_manager),

@@ -17,6 +17,7 @@ websocket_init(_Type, Req, _Opts) ->
     {Username, Req2} =  cowboy_req:cookie(<<"username">>, Req),
     {_, Str} = wr_to_json("connected",Username, "Ok!"),
     {_, Message} = message("data",Str),
+    self()! {command, js:index()},
     gproc:reg({p, l, ?WSKey}),
     erlang:start_timer(1000, self(), Message),
     lager:log(notice, [{pid, self()}], "Connected --~s", [Username]),
@@ -28,7 +29,7 @@ websocket_init(_Type, Req, _Opts) ->
             ok
     end,
     %poll:start({self(), Link}),
-    {ok, Req2, undefined_sate}.
+    {ok, Req2, undefined_state}.
 
 
 %Функция обработки входящего сообщение (реакция на клиентский запрос)
@@ -62,12 +63,11 @@ websocket_handle({binary, Msg}, Req, State) ->
     case  Cmsg of
         {messageSent,Text,Username,_} = Cmsg -> 
             {_, Str} = wr_to_json(messageReceived,Username, Text),
-            io:format("--Receive --~p ~n", [Cmsg]),
-   % Cmd="ws.send(\"Send Back This String\");",
+            lager:log(notice, [{pid, self()}], "--Receive --~p ~n", [Cmsg]),
             {_, Message} = message("data", Str),
-            io:format("--Text --~p ~n", [Message]),
             gproc:send({p, l, {pubsub,wsbroadcast}}, {self(), {pubsub,wsbroadcast}, Message});
         {delReport,Key,_,_} = Cmsg -> 
+            lager:log(notice, [{pid, self()}], "--Request for delete --~p ~n", [Cmsg]),
             ets_report:delete(Key);
         {viewLog,Key,_,_} = Cmsg -> 
             io:format("--Receive --~p ~n", [Cmsg]),

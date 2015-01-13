@@ -25,6 +25,11 @@ color:#C2C2C2;
 }
 .info {
 color:#66CC66;
+text-transform: uppercase;
+}
+.error {
+color: red;
+text-transform: uppercase;
 }
 #server {
 width: 250px;

@@ -46,7 +46,7 @@ filedir(Dirname, Key) ->
     directory:del_dir(Dirname),%kill dir
     lists:map(fun(Y) -> ets:insert(pdflist,[{Key,Y}]),
                         Msg=binary_to_list(unicode:characters_to_binary("Отчёт - "++ filename:basename(Y) ++ " готов")),
-                        {_,Str} =ws_handler:wr_to_json(messageReceived,"info", Msg),
+                        {_,Str} =ws_handler:wr_to_json(info,"info", Msg),
                         {_, Message} = ws_handler:message("data", Str),
                         gproc:send({p, l, {pubsub,wsbroadcast}}, {self(), {pubsub,wsbroadcast}, Message}) 
               end,ListKeyFile),

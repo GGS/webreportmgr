@@ -81,7 +81,7 @@ cmd(Key) ->
                                        ++"\"><td "++CheckInfo++">"++User++"</td><td>"
                                        ++Insert
                                        ++"</td><td>"++Status
-                                       ++"</td><td>"++Check++"</td></tr>')")) ,
+                                       ++"</td><td>"++Check++"</td></tr>')")),
     %io:format("Command_ets is --~ts~n",[Cmd]),
     {ok, Cmd}.
 
