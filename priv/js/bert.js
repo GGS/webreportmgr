@@ -173,10 +173,10 @@ var $bert = {};
 
 $bert.on = function onbert(evt, callback) // BERT formatter
 {
-    console.log("Bert On");
-    console.log(evt)
+    //console.log("Bert On");
+    //console.log(evt)
     // Check for FileReader.readAsArrayBuffer()
-    console.log('Blob - '+  Blob.prototype.isPrototypeOf(evt.data)+evt.data.size);
+    //console.log('Blob - '+  Blob.prototype.isPrototypeOf(evt.data)+evt.data.size);
     if(Blob.prototype.isPrototypeOf(evt.data) && evt.data.size > 0) {
         
         var reader = new FileReader();
@@ -194,6 +194,7 @@ $bert.on = function onbert(evt, callback) // BERT formatter
 };
 
 $bert.do = function dobert(erlang) {
-    var aa = String(erlang);
-    console.log("111- ", aa);
+    //var aa = String(erlang);
+    aa = erlang;
+    console.log(aa);
 }

@@ -75,7 +75,7 @@ dispatch_rules() ->
                                   {"/login", login_handler, []},
                                   {"/index", index_handler, []},
                                   {"/upload", upload_handler, []},
-                                  {"/websocket", ws_handler, []},
+                                  {"/websocket", bullet_handler, [{handler, ws_handler}]},
                                   {'_', notfound_handler, []}
                                  ]}
                           ]). 
