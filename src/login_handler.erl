@@ -7,10 +7,6 @@
 ]).
 
 init(_Type, _Req, []) ->
-   
-    %#{client := ClientCookie , session_id:= SessionCookie} 
-    %    =cowboy_req:match_cookies([client, session_id], Req),
-          %Req4 = cowboy_req:reply(200, [{<<"content-type">>, <<"text/html">>}], HTML, Req3),
     {upgrade, protocol,cowboy_rest}.
 
 is_authorized(Req, State) ->

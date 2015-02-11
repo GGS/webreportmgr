@@ -41,6 +41,9 @@ info(Key, Pid) ->
             info(ets:next(report, Key), Pid)
     end,     
     {ok, Cmd} = cmd(Key),
+    Term = {eval,{command, Cmd}},
+    Bin = term_to_binary(Term),
+    Pid!{binary, Bin},
     Pid!{command, Cmd},      
     ok.
 

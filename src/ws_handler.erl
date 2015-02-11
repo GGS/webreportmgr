@@ -1,5 +1,5 @@
 -module(ws_handler).
--export([init/4, stream_txt/3, stream_binary/3, info/3, terminate/2, message/2,wr_to_json/3]).
+-export([init/4, stream/3, info/3, terminate/2, message/2,wr_to_json/3]).
 
 -define(WSKey,{pubsub,wsbroadcast}).
 
@@ -22,20 +22,19 @@ init(_Transport, Req, _Opts, _Active) ->
     end,
     {ok, Req2, undefined_state}.
 
-stream_txt(<<"PING", Name/binary>>, Req, State) ->
+stream({text, <<"PING", Name/binary>>}, Req, State) ->
     %io:format("ping ~p received~n", [Name]),
     %{reply, <<"pong">>, Req, State};
     {ok, Req, State};
-stream_txt(Msg, Req, State) ->
-    io:format("--Receive --~p ~n", [Msg]),
-    Text = binary_to_list(Msg), 
+stream({text, Data}, Req, State) ->
+    io:format("--Receive --~p ~n", [Data]),
+    Text = binary_to_list(Data), 
     {_, Message} = message("data",Text),
     io:format("--OOO text --~p~n",[Message]),
     gproc:send({p, l, ?WSKey}, {self(), ?WSKey, [Message]}),
-    {ok, Req, State}.
-
-stream_binary(Msg, Req, State) -> 
-    Cmsg = binary_to_term(Msg),
+    {ok, Req, State};
+stream({binary, Data}, Req, State) -> 
+    Cmsg = binary_to_term(Data),
     case  Cmsg of
         {messageSent,Text,Username,_} = Cmsg -> 
             {_, Str} = wr_to_json(messageReceived,Username, Text),

@@ -16,15 +16,29 @@ init(_Args) ->
 
 process_task({gen_report, Dirname, Key}, State) ->
     io:format("Dirname from worker--~p----Key---~p ~n",[Dirname,Key]),
-    Cmd ="/home/DC/ggs/ReportCraft/report dir="++Dirname++" lang=RU type=nogui",
+     {_,[[Home]]} = init:get_argument(home),
+    Cmd = Home++"/ReportCraft/report dir="++Dirname++"  type=nogui",
     ets_report:update(Key, "working"),
     ets_report:info(ets:first(report)),
-    run(Cmd,Key),
+    case run(Cmd,Key) of
+        {error,timeout} ->
+            Msg="Причина: - timeout",
+            lager:log(error, [{pid, self()}], "Failed for timeout"),
+            del_error(Key),
+            send_msg(error, Msg);
+        {error, Status, _} ->
+            Msg="Код ошибки: - "++ integer_to_list(Status),
+            lager:log(error, [{pid, self()}], "Failed for reason --~s",[integer_to_list(Status)]),
+            del_error(Key),
+            send_msg(error, Msg);
+        _ ->
+            {_, FileList} = filedir(Dirname,Key),
+            lager:log(notice, [{pid, self()}], "File ready for use --~s", [FileList]),
+            ets_report:update(Key, "done"), %Здесь меняется статус задания
+            ets_report:info(ets:first(report)),
+            ok
+    end,
     %test(Dirname),
-    {_, FileList} = filedir(Dirname,Key),
-    lager:log(notice, [{pid, self()}], "File ready for use --~s", [FileList]),
-    ets_report:update(Key, "done"), %Здесь меняется статус задания
-    ets_report:info(ets:first(report)),
     {ok, State}.
 
 terminate(_Reason, _State) ->
@@ -39,16 +53,15 @@ filedir(Dirname, Key) ->
     {ok, CWD} = file:get_cwd(),
     Fdest = filename:join([CWD, "priv","pdf"]),
     filelib:ensure_dir(Fdest++"/1"),
-    List = filelib:wildcard(Dirname++"/*.{pdf,xls*}"),
+    directory:zip_dir("result.zip", Dirname),
+    List = filelib:wildcard(Dirname++"/*.{pdf,zip}"),
     FileList = lists:map(fun(X) -> filename:basename(X) end,List),
     lists:map(fun(Z) -> file:copy(Dirname++"/"++Z,Fdest++"/"++Key++"-"++Z) end,FileList), 
-    ListKeyFile = filelib:wildcard(Fdest++"/"++Key++"*.{pdf,xls*}"),
+    ListKeyFile = filelib:wildcard(Fdest++"/"++Key++"*.{pdf,zip}"),
     directory:del_dir(Dirname),%kill dir
     lists:map(fun(Y) -> ets:insert(pdflist,[{Key,Y}]),
-                        Msg=binary_to_list(unicode:characters_to_binary("Отчёт - "++ filename:basename(Y) ++ " готов")),
-                        {_,Str} =ws_handler:wr_to_json(info,"info", Msg),
-                        {_, Message} = ws_handler:message("data", Str),
-                        gproc:send({p, l, {pubsub,wsbroadcast}}, {self(), {pubsub,wsbroadcast}, Message}) 
+                        Msg="Отчёт - "++ filename:basename(Y) ++ " готов",
+                        send_msg(info, Msg)
               end,ListKeyFile),
     ets:match_delete(logtex, {Key,'_'}),
     {ok, FileList}.
@@ -62,25 +75,33 @@ run(Port, Lines, OldLine, Key) ->
         {Port, {data, Data}} ->
             case Data of
                 {eol, Line} ->
-                    %Pid! {dwnl, Line},
                     ets:insert(logtex,{Key, Line}),
                     run(Port, [<<OldLine/binary, Line/binary>> | Lines], <<>>, Key);
                 {noeol, Line} ->
-                    %Pid! {dwnl, Line},
                     ets:insert(logtex,{Key, Line}),
                     run(Port, Lines, <<OldLine/binary, Line/binary>>, Key)
             end;
         {Port, {exit_status, 0}} ->
             {ok, Lines};
         {Port, {exit_status, Status}} ->
-            %Pid! {dwnl, Status},
             {error, Status, Lines}
     after
-        600000 ->
+        86400000 ->
             {error, timeout}
     end.
     
-test(Dirname) ->
-    os:cmd("touch "++Dirname++"/1.pdf"),
-    ok.
+%test(Dirname) ->
+%    os:cmd("touch "++Dirname++"/1.pdf"),
+%    ok.
 
+send_msg(Type, Msg) ->
+    {_,Str} =ws_handler:wr_to_json(Type, Type, binary_to_list(unicode:characters_to_binary(Msg))),
+    {_, Message} = ws_handler:message("data", Str),
+    gproc:send({p, l, {pubsub,wsbroadcast}}, {self(), {pubsub,wsbroadcast}, Message}). 
+
+del_error(Key) ->
+    ets:match_delete(logtex, {Key,'_'}),
+    ets:match_delete(report, {report, '_', '_','_',Key,'_'}),
+    Cmd =  binary_to_list(unicode:characters_to_binary("$('#"++Key ++"').remove()")),
+    {_, Message} = ws_handler:message("eval", Cmd),
+    gproc:send({p, l, {pubsub,wsbroadcast}}, {self(), {pubsub,wsbroadcast}, Message}).

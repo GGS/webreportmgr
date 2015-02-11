@@ -10,9 +10,9 @@ init(_Type, Req, []) ->
 handle(Req, State) ->
     {ok, CType, Req1} = cowboy_req:parse_header(<<"content-type">>, Req),
     io:format("---Content:--- ~p ---~n",[CType]),
-    {ok, Req2} =  multipart(Req1, maps:new()),
+    {ok, Req2, Key} =  multipart(Req1, maps:new()),
     {ok, Req3}  = cowboy_req:reply(302,
-		[{<<"location">>,<<"/index">>}], Req2),
+		[{<<"location">>,<<"/index">>},{<<"idreport">>,Key}], Req2),
     {ok, Req3, State}.
  
 terminate(_Reason, _Req, _State) ->
@@ -44,22 +44,19 @@ multipart(Req,OldForm) ->
                                    end,
                                    {ok, Key} = ets_report:insert(FullFilename,ReportName, User),
                                    io:format("---Dirname-~p-Key-~p~n",[Dirname, Key]),
-                                   lager:log(notice, [{pid, self()}], "---Dirname-~p-Key-~p~n", [Dirname, Key]),
-                                   Msg=binary_to_list(unicode:characters_to_binary("Файл - "++filename:basename(FullFilename) ++ " загружен")),
-                                   {_, Str} =ws_handler:wr_to_json(info,"info", Msg),
-                                   {_, Message} = ws_handler:message("data",Str),
-                                   gproc:send({p, l, {pubsub,wsbroadcast}}, {self(), {pubsub,wsbroadcast}, Message}), 
+                                   lager:log(notice, [{pid, self()}], "File uploaded!--Dirname-~p-Key-~p~n", [Dirname, Key]),
                                    Cond = erlang:whereis(task_queue_manager),
                                    task_queue:in({gen_report, Dirname, Key}, Cond),
-                                   {Req3,{_FieldName, _Filename}}
+                                   {Req3,{<<"key">>, Key}}
                            end,
             Form = maps:put(A,B,OldForm),
             io:format("---Lookup-~p--~n",[Form]),
             io:format("---Next part--- ~n"),
             multipart(Req4,Form);
         {done, Req2} ->
-            io:format("---All parts parsing--- ~n"),
-            {ok, Req2}
+            Key = maps:get(<<"key">>, OldForm),
+            io:format("---All parts parsing--- ~p~n",[Key]),
+            {ok, Req2, Key}
     end.
 
 stream_file(Req, Xmlreport) ->

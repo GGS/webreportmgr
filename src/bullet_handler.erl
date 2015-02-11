@@ -137,9 +137,9 @@ websocket_init(Transport, Req, Opts) ->
             {shutdown, Req2}
     end.
 
-websocket_handle({text, Data}, Req,
+websocket_handle(Msg, Req,
                  State=#state{handler=Handler, handler_state=HandlerState}) ->
-    case Handler:stream_txt(Data, Req, HandlerState) of
+    case Handler:stream(Msg, Req, HandlerState) of
         {ok, Req2, HandlerState2} ->
             {ok, Req2, State#state{handler_state=HandlerState2}, hibernate};
         {reply, Reply, Req2, HandlerState2} ->
@@ -148,18 +148,7 @@ websocket_handle({text, Data}, Req,
         {shutdown, Req2, HandlerState2} ->
             {shutdown, Req2, State#state{handler_state=HandlerState2}}
     end;
-websocket_handle({binary, Data}, Req,
-                 State=#state{handler=Handler, handler_state=HandlerState}) ->
-    case Handler:stream_binary(Data, Req, HandlerState) of
-        {ok, Req2, HandlerState2} ->
-             %io:format("Handler ~p~n",[Req]),
-            {ok, Req2, State#state{handler_state=HandlerState2}, hibernate};
-        {reply, Reply, Req2, HandlerState2} ->
-            {reply, {binary, Reply}, Req2,
-             State#state{handler_state=HandlerState2}, hibernate};
-        {shutdown, Req2, HandlerState2} ->
-            {shutdown, Req2, State#state{handler_state=HandlerState2}}
-    end;
+
 websocket_handle(_Frame, Req, State) ->
     {ok, Req, State, hibernate}.
 

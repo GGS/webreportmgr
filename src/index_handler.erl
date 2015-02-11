@@ -39,17 +39,17 @@ trypass(User) ->
     end.
 content_types_provided(Req, State) ->
     {[
+      
       {<<"text/html">>, to_html}], Req, State}.
+
 to_html(Req, User) ->
     Sname = "Print report manager",
     %#{username := User} = cowboy_req:match_cookies([username], Req),
     io:format("--Pid HTTP open --~p ~n", [self()]),
-    % Формирование отсылаемого контента  со списком переменных (1 аргумент)
-    %Содержимое в переменную HTML
+                                                % Формирование отсылаемого контента  со списком переменных (1 аргумент)
+        %Содержимое в переменную HTML
     {ok, HTML} = index_dtl:render([{shortname, Sname},{currentUser, User}]), 
     {HTML, Req, User}.
-    %Req3 = cowboy_req:reply(200, [], HTML, Req),
-    %{ok, Req3, User}.
-
+    
 terminate(_Reason, _Req, _State) ->
     ok.

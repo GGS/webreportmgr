@@ -51,7 +51,7 @@ start_cowboy() ->
               ets:insert(passwd,{H,hd(T)}),
               io:format("~p~n",ets:lookup(passwd, H))
               end, Listpass),
-    task_queue:start_link(texreport_worker, [], [{workers_num, 4},{unique_tasks, false}]),
+    task_queue:start(texreport_worker, [], [{workers_num, 4},{unique_tasks, false}]),
     ets_report:init(report),
     cowboy:start_http(?MODULE, 10, [{port, Port}], Env ++ Hooks).
 
@@ -75,6 +75,7 @@ dispatch_rules() ->
                                   {"/login", login_handler, []},
                                   {"/index", index_handler, []},
                                   {"/upload", upload_handler, []},
+                                  {"/status", status_handler, []},
                                   {"/websocket", bullet_handler, [{handler, ws_handler}]},
                                   {'_', notfound_handler, []}
                                  ]}
