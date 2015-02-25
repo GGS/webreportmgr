@@ -1,5 +1,6 @@
 
-var transition = {pid: '', port:'7007'};
+//var transition = {pid: '', port:'7007'};
+var transition = {pid: ''};
 var active = false,
     protocol    = window.location.protocol == 'https:' ? "wss://" : "ws://",
     querystring = window.location.pathname + window.location.search,
@@ -14,16 +15,16 @@ function init(){
     ws.onmessage = function (evt) { for (var i=0;i<protos.length;i++) { p = protos[i]; if (p.on(evt,p.do).status == "ok") return; } };
     ws.onopen = function() { if (!active) { console.log('Connect'); ws.send(['N2O', transition.pid]); active=true; } };
     ws.ondisconnect = function() { active = false; console.log('Disconnect'); };
+    var sng = window.sng = window.sng || {};
+    sng.avg =[];
+    var numproc = 6;
+    initproc(numproc);
+    initdraw();
+    //grafAvg();
 };
  	
 
-function toggle_connection(){
-    if(websocket.readyState == websocket.OPEN){
-        disconnect();
-    } else {
-        connect();
-    };
-};
+
 function sendTxt() {
     txt = $("#send_txt").val();
     msg = Message("messageSent", txt);
@@ -33,20 +34,6 @@ function sendTxt() {
   
 };
 
-function onOpen(evt) { 
-    showScreen('<span style="color: green;">CONNECTED </span>'); 
-     console.log(evt);
-    
-};  
-
-function onClose(evt) { 
-    showScreen('<span style="color: red;">DISCONNECTED </span>');
-};  
-
-
-function onError(evt) {
-    showScreen('<span style="color: red;">ERROR: ' + evt.data+ '</span>');
-};
 
 function showScreen(txt) { 
     $('#output').prepend('<p>' + txt + '</p>');
@@ -91,4 +78,160 @@ function Message (event, txt) {
     };
     return msg;
 }
+function loadCpu (data) {
+    dd =[];
+    for(var i=0; i < data.length; i++) {
+        CpuLoad  =(((sng.procs[i][1]-data[i][1])-(sng.procs[i][2]-data[i][2]))/(sng.procs[i][1]-data[i][1]))*100;
+        dd.push(Math.round(CpuLoad));
+        //dd.push(CpuLoad);
+       //console.log(CpuLoad);
+    }
+    sng.procs = data;
+    draw(dd);
+    
+}
+function loadAvg (data) {
+    $('#loadavg').empty();
+    $('#loadavg').append('<strong>'+data[0]+' - '+data[1]+' - '+data[2]+'</strong>');  
+   if (sng.avg.length < 30) {
+       sng.avg[sng.avg.length]=data[0];
+   } else {
+       sng.avg.shift();
+       sng.avg[sng.avg.length]=data[0];
+   }
+    //redraw(sng.avg)
+}
 
+function initdraw()  {
+    var w = 150;
+    var barPadding = 4;
+    var h = 140;
+    var xPadding = 25;
+    var yPadding = 10;
+    sng.svg = d3.select("#graf")
+        .append("svg:svg")
+        .attr("class","chart")
+        .attr("width", w*1.2)
+	.attr("height", h);
+   
+    data =['1','1','1','1','1','1'];
+    var scale = d3.scale.linear()
+        .domain([100, 0])
+        .range([0, 100]);
+    sng.svg.append("g")
+        .attr("class", "axis") 
+        .attr("transform", "translate(0," + (h-yPadding-scale(0)) + ")")
+        .call(d3.svg.axis()
+              .scale(scale)
+              .orient("right")
+              .ticks(2));
+    var svgData = sng.svg
+        .selectAll('rect')
+        .data(data);
+     
+    sng.svg.selectAll('.proc')
+        .data(data)
+        .enter()
+        .append("text")
+        .attr("class","proc")
+        .attr("x", function(d, i) {
+            console.log(i)
+            return (i * (w / data.length))+xPadding
+        })
+        .attr("y", function(d) {
+            return ((h)-(scale(100)))})
+        .text(function(d) {
+            return d+"%";
+        })
+        .attr("font-family", "sans-serif")
+	.attr("font-size", "8px")
+        .attr("fill","grey");
+          
+    svgData
+        .enter()
+        .append("svg:rect")
+        .attr("x", function(d, i) {
+	    return (i * (w / data.length))+xPadding;
+        })
+        .attr("y", function(d) {
+            return ((h-yPadding)-(scale(d)));
+        })
+        .attr("width", w / data.length - barPadding)
+        .attr("height", function(d) {
+	  return scale(d) ;
+        })
+        .attr("fill", "steelblue")
+            
+}
+function grafAvg() {
+    var w = 150;
+    var barPadding = 4;
+    var h = 140;
+    var xPadding = 25;
+    var yPadding = 10;
+    sng.svg2 = d3.select("#graf")
+        .append("svg:svg")
+        .attr("class","chart")
+        .attr("width", w*2)
+	.attr("height", h); 
+    y = d3.scale.sqrt().domain([5, 0]).range([0, 100]),
+    x = d3.scale.linear().domain([0, sng.avg.length]).range([0, 400]);
+    var g = sng.svg2.append("svg:g")
+        .attr("class", "axis") 
+        .attr("transform", "translate(0," + (h-yPadding-y(0)) + ")")
+        .call(d3.svg.axis()
+              .scale(y)
+              .orient("right")
+              .ticks(6));
+    //var line = d3.svg.line()
+    //.x(function(d,i) { return x(i); })
+    //.y(function(d) {return y(d); });
+    //g.append("svg:path").attr("d", line(sng.avg));
+    g.append("svg:path").attr("d");
+}
+function redraw(data) {
+    var line = d3.svg.line()
+        .x(function(d,i) { return x(i); })
+        .y(function(d) {return y(d); });
+    var g = sng.svg2.select('g')
+        .data(line(data));
+    g.enter().insert('svg:path')
+        .attr("d");
+    y = d3.scale.sqrt().domain([5, 0]).range([0, 100]),
+    x = d3.scale.linear().domain([0, sng.avg.length]).range([0, 400]);
+    
+    g.exit().transition()
+        .duration(1000)
+        .remove();
+}
+function draw(data) {
+    var h = 140;
+     var scale = d3.scale.linear()
+        .domain([0, 100])
+        .range([0, 100]); 
+    sng.svg.selectAll('rect')
+        .data(data)
+        .transition()
+        .attr("y", function(d) {
+            return ((h-10)-(scale(d)));
+        })
+        .attr("height", function(d) {
+	    return scale(d) ;
+        })
+    sng.svg.selectAll('.proc')
+        .data(data)
+        .text(function( d) {
+            return d+"%";
+        })
+} 
+
+function initproc(numproc){
+sng.procs = [];
+ for(var i=0; i < numproc; i++) {
+     sng.procs[i] = [];
+     sng.procs[i][0] = '-';
+     sng.procs[i][1] = 0;
+     sng.procs[i][2] = 0;
+ }
+    console.log(sng.procs);
+}
