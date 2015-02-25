@@ -7,7 +7,8 @@ init(_Transport, Req, _Opts, _Active) ->
     {Username, Req2} =  cowboy_req:cookie(<<"username">>, Req),
     {_, Str} = wr_to_json("connected",Username, "Ok!"),
     {_, Message} = message("data",Str),
-    self()! {command, js:index()},
+    Term  = term_to_binary({eval,{js:index()}}),
+    self()!{binary, Term},
     gproc:reg({p, l, ?WSKey}),
     erlang:start_timer(1000, self(), Message),
     lager:log(notice, [{pid, self()}], "Connected --~s", [Username]),
@@ -23,8 +24,8 @@ init(_Transport, Req, _Opts, _Active) ->
     {ok, Req2, undefined_state}.
 
 stream({text, <<"PING", Name/binary>>}, Req, State) ->
-    %io:format("ping ~p received~n", [Name]),
-    %{reply, <<"pong">>, Req, State};
+    %%io:format("ping ~p received~n", [Name]),
+    %%{reply, <<"pong">>, Req, State};
     {ok, Req, State};
 stream({text, Data}, Req, State) ->
     io:format("--Receive --~p ~n", [Data]),
@@ -39,8 +40,9 @@ stream({binary, Data}, Req, State) ->
         {messageSent,Text,Username,_} = Cmsg -> 
             {_, Str} = wr_to_json(messageReceived,Username, Text),
             lager:log(notice, [{pid, self()}], "--Receive --~p ~n", [Cmsg]),
-            {_, Message} = message("data", Str),
-            gproc:send({p, l, {pubsub,wsbroadcast}}, {self(), {pubsub,wsbroadcast}, Message});
+            %%{_, Message} = message("data", Str),
+            Term = term_to_binary({messageSent,{Str}}),
+            gproc:send({p, l, {pubsub,wsbroadcast}}, {self(), {pubsub,wsbroadcast}, Term});
         {delReport,Key,_,_} = Cmsg -> 
             lager:log(notice, [{pid, self()}], "--Request for delete --~p ~n", [Cmsg]),
             ets_report:delete(Key);
@@ -55,7 +57,7 @@ stream({binary, Data}, Req, State) ->
 info(Info, Req, State) ->
     case Info of
         {_PID,?WSKey,Msg} ->
-            {reply, {text, Msg}, Req, State};
+            {reply, {binary, Msg}, Req, State};
         {timeout, _Ref, Msg} ->
             {reply, {text, Msg}, Req, State};
         {dwnl, Msg} ->

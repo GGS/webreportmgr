@@ -34,11 +34,11 @@ process_task({gen_report, Dirname, Key}, State) ->
         _ ->
             {_, FileList} = filedir(Dirname,Key),
             lager:log(notice, [{pid, self()}], "File ready for use --~s", [FileList]),
-            ets_report:update(Key, "done"), %Здесь меняется статус задания
+            ets_report:update(Key, "done"), %%Здесь меняется статус задания
             ets_report:info(ets:first(report)),
             ok
     end,
-    %test(Dirname),
+    %%test(Dirname),
     {ok, State}.
 
 terminate(_Reason, _State) ->
@@ -53,12 +53,12 @@ filedir(Dirname, Key) ->
     {ok, CWD} = file:get_cwd(),
     Fdest = filename:join([CWD, "priv","pdf"]),
     filelib:ensure_dir(Fdest++"/1"),
-    directory:zip_dir("result.zip", Dirname),
+    file_utils:zip_dir("result.zip", Dirname),
     List = filelib:wildcard(Dirname++"/*.{pdf,zip}"),
     FileList = lists:map(fun(X) -> filename:basename(X) end,List),
     lists:map(fun(Z) -> file:copy(Dirname++"/"++Z,Fdest++"/"++Key++"-"++Z) end,FileList), 
     ListKeyFile = filelib:wildcard(Fdest++"/"++Key++"*.{pdf,zip}"),
-    directory:del_dir(Dirname),%kill dir
+    file_utils:del_dir(Dirname),%kill dir
     lists:map(fun(Y) -> ets:insert(pdflist,[{Key,Y}]),
                         Msg="Отчёт - "++ filename:basename(Y) ++ " готов",
                         send_msg(info, Msg)
@@ -90,18 +90,18 @@ run(Port, Lines, OldLine, Key) ->
             {error, timeout}
     end.
     
-%test(Dirname) ->
-%    os:cmd("touch "++Dirname++"/1.pdf"),
-%    ok.
+%%%test(Dirname) ->
+%%%    os:cmd("touch "++Dirname++"/1.pdf"),
+%%%    ok.
 
 send_msg(Type, Msg) ->
     {_,Str} =ws_handler:wr_to_json(Type, Type, binary_to_list(unicode:characters_to_binary(Msg))),
-    {_, Message} = ws_handler:message("data", Str),
+    Message = term_to_binary({messageSent,{Str}}),
     gproc:send({p, l, {pubsub,wsbroadcast}}, {self(), {pubsub,wsbroadcast}, Message}). 
 
 del_error(Key) ->
     ets:match_delete(logtex, {Key,'_'}),
     ets:match_delete(report, {report, '_', '_','_',Key,'_'}),
     Cmd =  binary_to_list(unicode:characters_to_binary("$('#"++Key ++"').remove()")),
-    {_, Message} = ws_handler:message("eval", Cmd),
+    Message  = term_to_binary({eval,{Cmd}}),
     gproc:send({p, l, {pubsub,wsbroadcast}}, {self(), {pubsub,wsbroadcast}, Message}).

@@ -10,6 +10,7 @@
     <script type="text/javascript" src="/js/utf8.js"></script>
     <script type="text/javascript" src="/js/bert.js"></script>
     <script type="text/javascript" src="/js/client.js"></script>
+    <script type="text/javascript" src="/js/d3.v3.min.js"></script>
     <script type="text/javascript" src="/js/socket.js"></script>
   </head>
   <body>
@@ -36,6 +37,7 @@
           <button  class="btn btn-default" type="button"
           onclick="sendTxt();">Send</button> 
         </div></li>
+        <li><p class="navbar-text"> LoadAverage: <span id="loadavg"></span></p></li>
       </ul>
       
       
@@ -48,6 +50,17 @@
   </div><!-- /container -->
 </nav>
     {% block content %}{% endblock %}
+
+<div class="navbar-fixed-bottom row-fluid">
+      <div class="navbar-inner">
+        <div class="statcontainer">
+            <div class = "plot"><div id="graf"></div><div>
+        </div>
+        <div class="statcontainer">
+           <div class = "plot"></div>
+        </div>
+      </div>
+ </div>
 <script type="text/javascript">
 eval(document.querySelector('#send_txt').onkeypress = function(e) {
     if (e.which == '13') {sendTxt();}});

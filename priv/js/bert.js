@@ -183,7 +183,7 @@ $bert.on = function onbert(evt, callback) // BERT formatter
         reader.addEventListener("loadend", function() {
             try {
                 var erlang = dec(reader.result);
-                console.log(erlang.toString());
+                //console.log(erlang.toString());
                 if (typeof callback  == 'function') callback(erlang);
             } catch (e) { return { status: "error", desc: e }; }
         });
@@ -194,7 +194,25 @@ $bert.on = function onbert(evt, callback) // BERT formatter
 };
 
 $bert.do = function dobert(erlang) {
-    //var aa = String(erlang);
-    aa = erlang;
-    console.log(aa);
+    var func = erlang.value[0][0].value;
+    var data = erlang.value[0][1];
+    switch (func) {
+    case "messageSent":
+        obj = JSON.parse(data.value[0][0]);
+        console.log(utf8_decode(obj.text));
+        showScreen(strings[obj.event].replace(/\[([a-z]+)\]/g, '<span class="$1">').replace(/\[\/[a-z]+\]/g, '</span>').replace(/\%time\%/, obj.time).replace(/\%name\%/, obj.name).replace(/\%text\%/, unescape(utf8_decode(obj.text)).replace('<', '&lt;').replace('>', '&gt;')) + '<br>');
+        break;    
+    case "eval":
+        eval(utf8_decode(data.value[0][0].toString()));
+        break;
+    case "procs":
+        eval(loadCpu(data));
+        break;
+    case "loadavg":
+        //console.log(data);
+        eval(loadAvg(data));
+        break;
+    }
+    
+    //console.log(func);
 }

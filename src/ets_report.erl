@@ -14,8 +14,10 @@ init(report) ->
     ets:new(pdflist,[bag,named_table, public]), %new table para key-pdf
     ets:new(logtex,[bag,named_table, public]),
     ok.
+%% @doc Заполнение таблиц ets. Создаётся уникальный 
+%% идентификатор Ref значение которого присваивается заданию.  
 insert(Path,ReportName, User) ->
-    %Ref=make_ref(),
+    %%Ref=make_ref(),
     {Meg, Sec, Ms} = now(),
     Ref = integer_to_list(Meg * 1000000 + Sec + Ms),
     ets:insert(report, [#report{path=Path,reportname= ReportName, user=binary_to_list(User), key=Ref, status="wait"}]), 
@@ -30,7 +32,7 @@ info(Key) ->
             info(ets:next(report, Key))
     end,     
     {ok, Cmd} = cmd(Key),
-    {_, Message} = ws_handler:message("eval", Cmd),
+    Message  = term_to_binary({eval,{Cmd}}),
     gproc:send({p, l, {pubsub,wsbroadcast}}, {self(), {pubsub,wsbroadcast}, Message}), 
     ok.
 info(Key, Pid) ->
@@ -41,24 +43,21 @@ info(Key, Pid) ->
             info(ets:next(report, Key), Pid)
     end,     
     {ok, Cmd} = cmd(Key),
-    Term = {eval,{command, Cmd}},
-    Bin = term_to_binary(Term),
-    Pid!{binary, Bin},
-    Pid!{command, Cmd},      
+    Message = term_to_binary({eval,{Cmd}}),
+    Pid!{binary, Message},
     ok.
 
 update(Key, Status) ->
     ets:update_element(report,Key, {#report.status, Status}),
     ok.
 delete(Key) ->
-    %[[Path]] = ets:match(report, {report, '$1', '_',Key,'_'}),
-    %io:format("Path is --~p~n",[Path]),
     Pdflist = ets:match(pdflist,{Key,'$1'}),
     lists:map(fun(H) -> file:delete(H) end, Pdflist),
     ets:match_delete(report, {report, '_', '_','_',Key,'_'}),
     ets:match_delete(pdflist, {Key,'_'}),
     Cmd =  binary_to_list(unicode:characters_to_binary("$('#"++Key ++"').remove()")),
-    {_, Message} = ws_handler:message("eval", Cmd),
+    %{_, Message} = ws_handler:message("eval", Cmd),
+    Message  = term_to_binary({eval,{Cmd}}),
     gproc:send({p, l, {pubsub,wsbroadcast}}, {self(), {pubsub,wsbroadcast}, Message}), 
     ok.
 cmd(Key) ->
@@ -96,6 +95,6 @@ logtex(Key) ->
              Insert = ""
     end,
     Cmd = binary_to_list(unicode:characters_to_binary("$('#texlogheader').empty();$('#texlog').empty();$('#texlogheader').append('Output for "++Key++"<label for=\"dva\">x</label>');$('#texlog').append('"++ Insert++"')")),
-    {_,Message} = ws_handler:message("eval", Cmd),
+    Message  = term_to_binary({eval,{Cmd}}),
     gproc:send({p, l, {pubsub,wsbroadcast}}, {self(), {pubsub,wsbroadcast}, Message}), 
     ok.

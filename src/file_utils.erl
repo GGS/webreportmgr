@@ -48,11 +48,18 @@ recursively_list_dir(Dir, FilesOnly) ->
             end;
         false -> {error, enoent}
     end.
- 
-del_dir(Dir) ->
+
+
+%% @doc Для удаления директорий вместе с содержимым 
+%%-spec del_dir(Dir::string()) -> ok | [string()]. 
+
+ del_dir(Dir) ->
    lists:foreach(fun(D) ->
                     ok = file:del_dir(D)
                  end, del_all_files([Dir], [])). 
+
+%% @doc Для архивирования (.zip)  директорий вместе с содержимым 
+-spec zip_dir(Name::string(),Dir::string()) -> ok. 
 
 zip_dir(Name, Dir) ->
     {ok,Cwd} = file:get_cwd(),
@@ -78,7 +85,6 @@ recursively_list_dir([Path|Paths], FilesOnly, Acc) ->
                     end)
         end).
  
-%% @doc Для удаления директорий вместе с содержимым 
 
  
 del_all_files([], EmptyDirs) ->
@@ -102,7 +108,7 @@ del_all_files([Dir | T], EmptyDirs) ->
  
 %% Tests
  
--ifdef(TEST).
+-ifndef(TEST).
 -include_lib("eunit/include/eunit.hrl").
  
 non_existing_file_returns_error_test() ->
@@ -124,7 +130,7 @@ simple_test() ->
     ?assertEqual({ok, ["a/b/c", "a/b", "a"]}, 
                  recursively_list_dir("a")),
     file:write_file("a/b/f.test", <<"temp test file">>),
-    ?assertEqual({ok, ["a/b/c","a/b/f.test","a/b","a"]}, 
+    ?assertEqual({ok, ["a/b/f.test","a/b/c","a/b","a"]}, 
                  recursively_list_dir("a")),
     cleanup(),
     ok.
@@ -137,7 +143,13 @@ filesonly_test() ->
                  recursively_list_dir("a", true)),
     cleanup(),
     ok.
- 
+
+simple2_test() ->
+    filelib:ensure_dir("a/b/c/"),
+    file:write_file("a/b/f.test", <<"hello">>),
+    ?assertEqual(ok, del_dir("a")),
+    ok.
+
 cleanup() ->
     file:delete("f1.test"),
     file:delete("a/b/f.test"),

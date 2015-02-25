@@ -20,8 +20,7 @@ function init(){
     var numproc = 6;
     initproc(numproc);
     initdraw();
-    //grafAvg();
-};
+    };
  	
 
 
@@ -163,47 +162,7 @@ function initdraw()  {
         .attr("fill", "steelblue")
             
 }
-function grafAvg() {
-    var w = 150;
-    var barPadding = 4;
-    var h = 140;
-    var xPadding = 25;
-    var yPadding = 10;
-    sng.svg2 = d3.select("#graf")
-        .append("svg:svg")
-        .attr("class","chart")
-        .attr("width", w*2)
-	.attr("height", h); 
-    y = d3.scale.sqrt().domain([5, 0]).range([0, 100]),
-    x = d3.scale.linear().domain([0, sng.avg.length]).range([0, 400]);
-    var g = sng.svg2.append("svg:g")
-        .attr("class", "axis") 
-        .attr("transform", "translate(0," + (h-yPadding-y(0)) + ")")
-        .call(d3.svg.axis()
-              .scale(y)
-              .orient("right")
-              .ticks(6));
-    //var line = d3.svg.line()
-    //.x(function(d,i) { return x(i); })
-    //.y(function(d) {return y(d); });
-    //g.append("svg:path").attr("d", line(sng.avg));
-    g.append("svg:path").attr("d");
-}
-function redraw(data) {
-    var line = d3.svg.line()
-        .x(function(d,i) { return x(i); })
-        .y(function(d) {return y(d); });
-    var g = sng.svg2.select('g')
-        .data(line(data));
-    g.enter().insert('svg:path')
-        .attr("d");
-    y = d3.scale.sqrt().domain([5, 0]).range([0, 100]),
-    x = d3.scale.linear().domain([0, sng.avg.length]).range([0, 400]);
-    
-    g.exit().transition()
-        .duration(1000)
-        .remove();
-}
+
 function draw(data) {
     var h = 140;
      var scale = d3.scale.linear()
