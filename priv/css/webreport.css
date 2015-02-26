@@ -38,6 +38,20 @@ text-transform: uppercase;
 color: red;
 text-transform: uppercase;
 }
+.error_tr {
+color: red;
+text-transform: uppercase;
+background:#FFF8DC;
+}
+.done_tr {
+color: green;
+text-transform: uppercase;
+background:   #F0FFF0;
+}
+.other_tr {
+text-transform: uppercase;
+background:  #FFFFE0;
+}
 #server {
 width: 250px;
 }

@@ -1,1 +1,1 @@
--record(report, {path, reportname, user, key, status}).
+-record(report, {path, filename, reportname, user, key, status}).

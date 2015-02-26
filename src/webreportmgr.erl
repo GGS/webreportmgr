@@ -64,6 +64,7 @@ dispatch_rules() ->
             end,
     {ok, CWD} = file:get_cwd(),
     Pdf_dest = filename:join([CWD, "priv","pdf"]),
+    Users_dest = filename:join([CWD, "priv","users"]),
     Logs_dest = filename:join([CWD, "logs"]),
     cowboy_router:compile([
                            {'_', [
@@ -71,6 +72,7 @@ dispatch_rules() ->
                                   Static("js"),
                                   Static("img"),
                                   {"/pdf/[...]", cowboy_static, {dir,list_to_binary(Pdf_dest),[{mimetypes, cow_mimetypes, all}]}},
+                                  {"/users/[...]", cowboy_static, {dir,list_to_binary(Users_dest),[{mimetypes, cow_mimetypes, all}]}},
                                   {"/logs/[...]", cowboy_static, {dir,list_to_binary(Logs_dest),[{mimetypes, cow_mimetypes, all}]}},
                                   {"/", login_handler, []},
                                   {"/login", login_handler, []},

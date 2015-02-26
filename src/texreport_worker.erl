@@ -100,8 +100,9 @@ send_msg(Type, Msg) ->
     gproc:send({p, l, {pubsub,wsbroadcast}}, {self(), {pubsub,wsbroadcast}, Message}). 
 
 del_error(Key) ->
-    ets:match_delete(logtex, {Key,'_'}),
-    ets:match_delete(report, {report, '_', '_','_',Key,'_'}),
-    Cmd =  binary_to_list(unicode:characters_to_binary("$('#"++Key ++"').remove()")),
-    Message  = term_to_binary({eval,{Cmd}}),
-    gproc:send({p, l, {pubsub,wsbroadcast}}, {self(), {pubsub,wsbroadcast}, Message}).
+    ets_report:update(Key, "error"),
+    ets_report:info(ets:first(report)).
+    %ets:match_delete(report, {report, '_', '_','_',Key,'_'}),
+    %Cmd =  binary_to_list(unicode:characters_to_binary("$('#"++Key ++"').remove()")),
+    %Message  = term_to_binary({eval,{Cmd}}),
+    %gproc:send({p, l, {pubsub,wsbroadcast}}, {self(), {pubsub,wsbroadcast}, Message}).

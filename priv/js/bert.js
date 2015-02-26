@@ -203,7 +203,8 @@ $bert.do = function dobert(erlang) {
         showScreen(strings[obj.event].replace(/\[([a-z]+)\]/g, '<span class="$1">').replace(/\[\/[a-z]+\]/g, '</span>').replace(/\%time\%/, obj.time).replace(/\%name\%/, obj.name).replace(/\%text\%/, unescape(utf8_decode(obj.text)).replace('<', '&lt;').replace('>', '&gt;')) + '<br>');
         break;    
     case "eval":
-        eval(utf8_decode(data.value[0][0].toString()));
+        //console.log(utf8_decode(data.value[0][0].toString()).replace(/n't/g,""));
+        eval(utf8_decode(data.value[0][0].toString()).replace(/'t/g,"not"));
         break;
     case "procs":
         eval(loadCpu(data));

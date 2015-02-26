@@ -46,6 +46,12 @@ stream({binary, Data}, Req, State) ->
         {delReport,Key,_,_} = Cmsg -> 
             lager:log(notice, [{pid, self()}], "--Request for delete --~p ~n", [Cmsg]),
             ets_report:delete(Key);
+        {delErr,Key,_,_} = Cmsg -> 
+            lager:log(notice, [{pid, self()}], "--Request for delete error data --~p ~n", [Cmsg]),
+            [{report,Dirname,_,_,_,_,_}] = ets:lookup(report,Key),
+            file_utils:del_dir(Dirname),
+            ets:match_delete(logtex, {Key,'_'}),
+            ets_report:delete(Key);
         {viewLog,Key,_,_} = Cmsg -> 
             io:format("--Receive --~p ~n", [Cmsg]),
             ets_report:logtex(Key);

@@ -58,6 +58,11 @@ function checkDel(sender) {
     msg = Message("delReport", tr.getAttribute('id'));
     ws.send(enc(tuple(atom(msg.event), utf8_toByteArray(msg.text), msg.name, msg.time)));
     }
+function checkDelErr(sender) {
+    var tr = sender.parentNode.parentNode.parentNode;
+    msg = Message("delErr", tr.getAttribute('id'));
+    ws.send(enc(tuple(atom(msg.event), utf8_toByteArray(msg.text), msg.name, msg.time)));
+    }
 function checkInfo(sender) {
     var tr = sender.parentNode;
     msg = Message("viewLog", tr.getAttribute('id'));

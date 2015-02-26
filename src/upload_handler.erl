@@ -27,13 +27,13 @@ multipart(Req,OldForm) ->
                                    {ok, _Body, Req3} = cowboy_req:part_body(Req2),
                                    io:format("---Parsing:--- ~p ---~p~n",[_FieldName, _Body]),
                                    {Req3,{_FieldName,_Body}};  %normal field has atom - data
-                               {file, _FieldName, _Filename, _CType, _CTransferEncoding} ->
+                               {file, _FieldName, Filename, _CType, _CTransferEncoding} ->
                                    {ok, CWD} = file:get_cwd(),
-                                   io:format("---Parsing:--- ~p ---~p~n",[_FieldName, _Filename]),
+                                   io:format("---Parsing:--- ~p ---~p~n",[_FieldName, Filename]),
                                    User = maps:get(<<"user">>,OldForm),
                                    ReportName = maps:get(<<"reportname">>, OldForm),
                                    Path = filename:join([CWD, "priv","users", binary_to_list(User)]),
-                                   {ok, Dirname, FullFilename} = assert_config(Path, binary_to_list(_Filename), lists:seq(1, 100)),
+                                   {ok, Dirname, FullFilename} = assert_config(Path, binary_to_list(Filename), lists:seq(1, 100)),
                                    {ok, Xmlreport} = file:open(FullFilename, [write]),
                                    Req3 = stream_file(Req2,Xmlreport), %stream for file
                                    Ext =  string:to_upper(filename:extension(FullFilename)),
@@ -42,7 +42,7 @@ multipart(Req,OldForm) ->
                                       true ->
                                            ok
                                    end,
-                                   {ok, Key} = ets_report:insert(FullFilename,ReportName, User),
+                                   {ok, Key} = ets_report:insert(Dirname, binary_to_list(Filename),ReportName, User),
                                    io:format("---Dirname-~p-Key-~p~n",[Dirname, Key]),
                                    lager:log(notice, [{pid, self()}], "File uploaded!--Dirname-~p-Key-~p~n", [Dirname, Key]),
                                    Cond = erlang:whereis(task_queue_manager),
@@ -81,11 +81,11 @@ assert_config(Path, Filename, Listnum) ->
         _->
             FullFilename = filename:join([ Dirname, "dynamic", "ForTex", Filename])
     end,
-    filelib:ensure_dir(FullFilename),
-    case filelib:is_regular(FullFilename) of
+    case filelib:is_dir(Dirname) of
         true ->
             assert_config(Path, Filename, T);  
         _ ->
+            filelib:ensure_dir(FullFilename),
             {ok, Dirname, FullFilename}
 
     end.
