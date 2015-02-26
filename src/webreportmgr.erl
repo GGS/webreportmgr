@@ -43,7 +43,7 @@ init(root) ->
 start_cowboy() ->
     Dispatch = dispatch_rules(),
     Env = [{env, [{dispatch, Dispatch}]}],
-    Port = 7007,
+    Port = 8008,
     Hooks = [{onresponse, fun webreportmgr_log:access_log_hook/4}],
     Listpass = ["Operator1::oper1"],
     ets:new(passwd,[set, named_table]),
