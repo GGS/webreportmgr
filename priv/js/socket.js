@@ -105,7 +105,17 @@ function loadAvg (data) {
    }
     //redraw(sng.avg)
 }
+function loadUptime (data) {
+    $('#uptime').empty();
+    $('#uptime').append('<strong>'+data[0]+" : "+Doubl(data[1])+":"+Doubl(data[2])+":"+Doubl(data[3])+'</strong>'); 
+}
 
+function Doubl (num) {
+    if (num < 10) {
+        num ="0"+num;
+    }
+return num;
+}
 function initdraw()  {
     var w = 150;
     var barPadding = 4;

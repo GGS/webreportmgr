@@ -17,9 +17,10 @@ init(report) ->
 %% @doc Заполнение таблиц ets. Создаётся уникальный 
 %% идентификатор Ref значение которого присваивается заданию.  
 insert(Path,Filename,ReportName, User) ->
-    %%Ref=make_ref(),
-    {Meg, Sec, Ms} = now(),
-    Ref = integer_to_list(Meg * 1000000 + Sec + Ms),
+    %%{Meg, Sec, Ms} = now(),
+    %%Ref = integer_to_list(Meg * 1000000 + Sec + Ms),
+    {ok, Digest} = lib_md5:file(filename:join([Path,"dynamic", Filename])),
+    Ref = lib_md5:digest2str(Digest),
     ets:insert(report, [#report{path=Path, filename=Filename, reportname= ReportName, user=binary_to_list(User), key=Ref, status="wait"}]), 
     io:format("Ref is --~p~n",[Ref]),
     info(Ref),

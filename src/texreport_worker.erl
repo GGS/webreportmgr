@@ -59,10 +59,12 @@ filedir(Dirname, Key) ->
     lists:map(fun(Z) -> file:copy(Dirname++"/"++Z,Fdest++"/"++Key++"-"++Z) end,FileList), 
     ListKeyFile = filelib:wildcard(Fdest++"/"++Key++"*.{pdf,zip}"),
     file_utils:del_dir(Dirname),%kill dir
-    lists:map(fun(Y) -> ets:insert(pdflist,[{Key,Y}]),
-                        Msg="Отчёт - "++ filename:basename(Y) ++ " готов",
-                        send_msg(info, Msg)
+    lists:map(fun(Y) -> ets:insert(pdflist,[{Key,Y}])
+                        %%Msg="Отчёт - "++ filename:basename(Y) ++ " готов",
+                        %%send_msg(info, Msg)
               end,ListKeyFile),
+    Msg="Отчёт - "++ Key ++ " готов",
+    send_msg(info, Msg),
     ets:match_delete(logtex, {Key,'_'}),
     {ok, FileList}.
 
