@@ -66,7 +66,9 @@ cmd(Key) ->
         "done" -> 
             Cond = ets:match(pdflist,{Key,'$1'}),
             Insert = lists:append(lists:map(fun(H) -> 
-                                                    "<p><a target=\"_blank\" href=\"/pdf/"++filename:basename(H)++"\">"++unicode:characters_to_list(ReportName)++ "</a></p>" end, Cond)),
+                                                    Size = float_to_list(filelib:file_size(H)/1024,[{decimals, 0}]),
+                                                    Ext = filename:extension(H),
+                                                    "<p><a target=\"_blank\" href=\"/pdf/"++filename:basename(H)++"\">"++unicode:characters_to_list(ReportName)++ "---"++Ext++"---size, kb:--"++Size++"</a></p>" end, Cond)),
             Check="<form><input type=\"checkbox\" class=\"checked\" onchange=\"checkDel(this);\"></form>",
             Class = "success",
             CheckInfo="";
