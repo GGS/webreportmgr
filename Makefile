@@ -11,6 +11,6 @@ include erlang.mk
 
 run:
 	#@(erl -pa `pwd`/ebin deps/*/ebin -config webreportmgr.config -s webreportmgr )
-	@(erl -pa `pwd`/ebin deps/*/ebin -s webreportmgr -sname wbr1 -setcookie webreportmgr1)
+	@(erl -pa `pwd`/ebin deps/*/ebin -s webreportmgr -sname wbreportmgr -setcookie webreportmgr)
 
 

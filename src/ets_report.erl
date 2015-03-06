@@ -11,7 +11,8 @@
 
 init(report) ->
     ets:new(report, [ordered_set, {keypos,#report.key}, named_table, public]),
-    ets:new(pdflist,[bag,named_table, public]), %new table para key-pdf
+    ets:new(ospid, [set, named_table, public]),
+    ets:new(pdflist,[bag,named_table, public]), %%new table para key-pdf
     ets:new(logtex,[bag,named_table, public]),
     ok.
 %% @doc Заполнение таблиц ets. Создаётся уникальный 
@@ -69,18 +70,22 @@ cmd(Key) ->
                                                     Size = float_to_list(filelib:file_size(H)/1024,[{decimals, 0}]),
                                                     Ext = filename:extension(H),
                                                     "<p><a target=\"_blank\" href=\"/pdf/"++filename:basename(H)++"\">"++unicode:characters_to_list(ReportName)++ "---"++Ext++"---size, kb:--"++Size++"</a></p>" end, Cond)),
-            Check="<form><input type=\"checkbox\" class=\"checked\" onchange=\"checkDel(this);\"></form>",
+            Check="<button class=\"btn btn-link\"onclick=\"checkDel(this);\">Удалить</button>",
             Class = "success",
             CheckInfo="";
         "error" ->
             Url = filename:join(["users",User,filename:basename(Path),"dynamic", Filename]),
             Insert = "<p><a target=\"_blank\" href=\""++Url++"\">"++unicode:characters_to_list(ReportName)++ "</a></p>", 
-            Check="<form><input type=\"checkbox\" class=\"checked\" onchange=\"checkDelErr(this);\"></form>",
+            Check="<button class=\"btn btn-link\"onclick=\"checkDel(this);\">Удалить</button>",
             Class = "danger",
             CheckInfo="class=\"lightbox1\" id=\""++User++Key++"\"onclick=\"checkInfo(this)\"";
+         "working" ->
+            Insert = unicode:characters_to_list(ReportName),
+            Check="<button class=\"btn btn-link\"onclick=\"checkStop(this)\";>Остановить</button>",
+            Class = "info",
+            CheckInfo="class=\"lightbox1\" id=\""++User++Key++"\"onclick=\"checkInfo(this)\";";  
         _ ->
             Insert = unicode:characters_to_list(ReportName),
-            io:format("Insert is --~ts~n",[Insert]),
             Check="",
             Class = "info",
             CheckInfo="class=\"lightbox1\" id=\""++User++Key++"\"onclick=\"checkInfo(this)\";"   

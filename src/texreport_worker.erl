@@ -71,6 +71,8 @@ filedir(Dirname, Key) ->
 run(Command, Key) ->
     Port = open_port({spawn, Command},
                      [{line, 160}, exit_status, stderr_to_stdout, in, binary]),
+    ets:insert(ospid,[{Key,proplists:get_value(os_pid,erlang:port_info(Port))}]),
+    %%io:format("Proc est ~p~n",[proplists:get_value(os_pid,erlang:port_info(Port))]),
     run(Port, [], <<>>, Key).
 run(Port, Lines, OldLine, Key) ->
     receive

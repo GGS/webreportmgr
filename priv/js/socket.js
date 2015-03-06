@@ -53,13 +53,18 @@ function getCookie(cname) {
     }
     return "";
 }
+function checkStop(sender) {
+var tr = sender.parentNode.parentNode;
+msg = Message("delPid", tr.getAttribute('id'));
+ws.send(enc(tuple(atom(msg.event), utf8_toByteArray(msg.text), msg.name, msg.time)));
+}
 function checkDel(sender) {
-    var tr = sender.parentNode.parentNode.parentNode;
+    var tr = sender.parentNode.parentNode;
     msg = Message("delReport", tr.getAttribute('id'));
     ws.send(enc(tuple(atom(msg.event), utf8_toByteArray(msg.text), msg.name, msg.time)));
     }
 function checkDelErr(sender) {
-    var tr = sender.parentNode.parentNode.parentNode;
+    var tr = sender.parentNode.parentNode;
     msg = Message("delErr", tr.getAttribute('id'));
     ws.send(enc(tuple(atom(msg.event), utf8_toByteArray(msg.text), msg.name, msg.time)));
     }

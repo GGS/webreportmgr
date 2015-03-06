@@ -52,6 +52,10 @@ stream({binary, Data}, Req, State) ->
             file_utils:del_dir(Dirname),
             ets:match_delete(logtex, {Key,'_'}),
             ets_report:delete(Key);
+        {delPid,Key,_,_} = Cmsg -> 
+            [[Ospid]] = ets:match(ospid,{Key,'$1'}),
+            lager:log(notice, [{pid, self()}], "--Request for kill proccess --~p ~n", [Ospid]),
+            os:cmd("kill "++ integer_to_list(Ospid));
         {viewLog,Key,_,_} = Cmsg -> 
             io:format("--Receive --~p ~n", [Cmsg]),
             ets_report:logtex(Key);
