@@ -78,6 +78,11 @@ function delLog(sender) {
     $(sender).css('visibility','hidden');
     //alert(tr.getAttribute('id'));
    }
+function checkRest(sender) {
+    var tr = sender.parentNode.parentNode;
+    msg = Message("restTask", tr.getAttribute('id'));
+    ws.send(enc(tuple(atom(msg.event), utf8_toByteArray(msg.text), msg.name, msg.time)));
+}
 function Message (event, txt) {
     var msg = {
         event: event,
@@ -113,8 +118,61 @@ function loadAvg (data) {
 function loadUptime (data) {
     $('#uptime').empty();
     $('#uptime').append('<strong>'+data[0]+" : "+Doubl(data[1])+":"+Doubl(data[2])+":"+Doubl(data[3])+'</strong>'); 
+/*Fill table */
+}
+function fillTbl (data) {
+    var Key = data[5];
+    var Class ='';
+    var Insert ='';
+    var CheckInfo='';
+    var Check='';
+    switch (data[6]) {
+    case 'done':
+         console.log(data);
+        for (i=0; i < data[7].length; i++) {
+            Insert = Insert.concat('<p><a target="_blank" href="/pdf/'+data[7][i][2]+'">'+dataUnix(data[0])+'--'+data[3]+'---Ext-'+data[7][i][1]+'---size, kb:-'+data[7][i][0]+'---total time:-'+Doubl(data[7][i][3])+':'+Doubl(data[7][i][4])+':'+Doubl(data[7][i][5])+'</a></p>');
+        }
+        Class = 'success';
+        CheckInfo='';
+        Check='<button class="btn btn-link" onclick="checkDel(this)">Удалить</button>';
+        break;
+    case 'working':
+        Insert = dataUnix(data[0])+'--'+data[3];
+        Check='<button class="btn btn-link" onclick="checkStop(this)">Остановить</button>';
+        Class = 'info';
+        CheckInfo='class="lightbox1" id="'+data[4]+Key+'" onclick="checkInfo(this)"';
+        break;
+    case 'error':
+        Insert = '<p><a target="_blank" href="'+data[7]+'">'+ dataUnix(data[0])+'--'+data[3]+'</a></p>'; 
+        Check='<button class="btn btn-link "onclick= "checkDelErr(this)">Удалить</button>';
+        Class = 'danger';
+        CheckInfo='class="lightbox1" id="'+data[4]+Key+'" onclick="checkInfo(this)"';
+        break;
+     case 'restoring':
+        Insert = dataUnix(data[0])+'--'+data[3];
+        Check='<button class="btn btn-link" onclick="checkRest(this)">Восстановить</button>';
+        Class = 'warning';
+        CheckInfo='';
+        break;
+    default:
+        Insert = dataUnix(data[0])+'--'+data[3];
+        Class = 'info';
+        Check='';
+        CheckInfo='';
+        console.log(data);
+    }
+    $('#'+Key).remove();
+    $('#tblstatus').append('<tr class='+Class+' id='+Key+'><td '+CheckInfo+'>'+data[4]+'</td><td>'+Insert+'</td><td>'+data[6]+'</td><td>'+Check+'</td></tr>');
 }
 
+function dataUnix(unix_time) {
+    var date = new Date(unix_time*1000);
+    var hours = Doubl(date.getHours());
+    var minutes = Doubl(date.getMinutes());
+    var seconds = Doubl(date.getSeconds());
+    var Str = hours+':'+ minutes + ':'+seconds;
+    return Str
+}
 function Doubl (num) {
     if (num < 10) {
         num ="0"+num;

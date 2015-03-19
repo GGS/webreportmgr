@@ -53,7 +53,7 @@ start_cowboy() ->
               end, Listpass),
     task_queue:start(texreport_worker, [], [{workers_num, 4},{unique_tasks, false}]),
     poll:start(),
-    ets_report:init(report),
+    ets_report:init("repDb"),
     cowboy:start_http(?MODULE, 10, [{port, Port}], Env ++ Hooks).
 
 mime() -> [{mimetypes,cow_mimetypes,all}].

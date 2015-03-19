@@ -29,9 +29,9 @@ exist(Initcount) ->
     Cond = erlang:whereis(task_queue_manager),
     if Cond == undefined ->
             lager:log(error, [{pid, self()}], "Task_queue manager is down "),
-            send_msg(error, "Task_queue manager is down"),
+            js:send_msg(error, "Task_queue manager is down"),
             task_queue:start(texreport_worker, [], [{workers_num, 4},{unique_tasks, false}]),
-            send_msg(info, "Task_queue manager is UP, reload all task");
+            js:send_msg(info, "Task_queue manager is UP, reload all task");
        true ->
             true
     end,
@@ -54,7 +54,4 @@ exist(Initcount) ->
     %%io:format("~p~p~p~p~n",[M0,M1,M2,M3]),
     {noreply, {Timer,Initcount}}.  
 
-send_msg(Type, Msg) ->
-    {_,Str} =ws_handler:wr_to_json(Type, Type, binary_to_list(unicode:characters_to_binary(Msg))),
-    Message = term_to_binary({messageSent,{Str}}),
-    gproc:send({p, l, {pubsub,wsbroadcast}}, {self(), {pubsub,wsbroadcast}, Message}). 
+

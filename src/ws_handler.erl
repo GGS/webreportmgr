@@ -1,12 +1,12 @@
 -module(ws_handler).
--export([init/4, stream/3, info/3, terminate/2, message/2,wr_to_json/3]).
+-export([init/4, stream/3, info/3, terminate/2]).
 
 -define(WSKey,{pubsub,wsbroadcast}).
 
 init(_Transport, Req, _Opts, _Active) ->
     {Username, Req2} =  cowboy_req:cookie(<<"username">>, Req),
-    {_, Str} = wr_to_json("connected",Username, "Ok!"),
-    {_, Message} = message("data",Str),
+    {_, Str} = js:wr_to_json("connected",Username, "Ok!"),
+    {_, Message} = js:message("data",Str),
     Term  = term_to_binary({eval,{js:index()}}),
     self()!{binary, Term},
     gproc:reg({p, l, ?WSKey}),
@@ -30,7 +30,7 @@ stream({text, <<"PING", Name/binary>>}, Req, State) ->
 stream({text, Data}, Req, State) ->
     io:format("--Receive --~p ~n", [Data]),
     Text = binary_to_list(Data), 
-    {_, Message} = message("data",Text),
+    {_, Message} = js:message("data",Text),
     io:format("--OOO text --~p~n",[Message]),
     gproc:send({p, l, ?WSKey}, {self(), ?WSKey, [Message]}),
     {ok, Req, State};
@@ -38,9 +38,9 @@ stream({binary, Data}, Req, State) ->
     Cmsg = binary_to_term(Data),
     case  Cmsg of
         {messageSent,Text,Username,_} = Cmsg -> 
-            {_, Str} = wr_to_json(messageReceived,Username, Text),
+            {_, Str} = js:wr_to_json(messageReceived,Username, Text),
             lager:log(notice, [{pid, self()}], "--Receive --~p ~n", [Cmsg]),
-            %%{_, Message} = message("data", Str),
+            %%{_, Message} = js:message("data", Str),
             Term = term_to_binary({messageSent,{Str}}),
             gproc:send({p, l, {pubsub,wsbroadcast}}, {self(), {pubsub,wsbroadcast}, Term});
         {delReport,Key,_,_} = Cmsg -> 
@@ -48,7 +48,7 @@ stream({binary, Data}, Req, State) ->
             ets_report:delete(Key);
         {delErr,Key,_,_} = Cmsg -> 
             lager:log(notice, [{pid, self()}], "--Request for delete error data --~p ~n", [Cmsg]),
-            [{report,Dirname,_,_,_,_,_}] = ets:lookup(report,Key),
+            [{report,_,Dirname,_,_,_,_,_}] = ets:lookup(report,Key),
             file_utils:del_dir(Dirname),
             ets:match_delete(logtex, {Key,'_'}),
             ets_report:delete(Key);
@@ -56,6 +56,11 @@ stream({binary, Data}, Req, State) ->
             [[Ospid]] = ets:match(ospid,{Key,'$1'}),
             lager:log(notice, [{pid, self()}], "--Request for kill proccess --~p ~n", [Ospid]),
             os:cmd("kill "++ integer_to_list(Ospid));
+        {restTask,Key,_,_} = Cmsg ->
+            lager:log(notice, [{pid, self()}], "--Request for restoring proccess --~p ~n", [Key]),
+            Cond = erlang:whereis(task_queue_manager),
+            [[Path]] = ets:match(report, {report, '_','$1','_', '_','_',Key,'_'}),
+            task_queue:in({gen_report, Path, Key}, Cond);
         {viewLog,Key,_,_} = Cmsg -> 
             io:format("--Receive --~p ~n", [Cmsg]),
             ets_report:logtex(Key);
@@ -71,10 +76,10 @@ info(Info, Req, State) ->
         {timeout, _Ref, Msg} ->
             {reply, {text, Msg}, Req, State};
         {dwnl, Msg} ->
-            {_, Message} = message("data", Msg),
+            {_, Message} = js:message("data", Msg),
             {reply, {text, Message}, Req, State};
         {command, Msg} ->
-            {_, Message} = message( "eval", Msg),
+            {_, Message} = js:message( "eval", Msg),
             {reply, {text, Message}, Req, State};
         {binary, Msg} ->
             {reply, {binary, Msg}, Req, State};
@@ -85,17 +90,3 @@ info(Info, Req, State) ->
 terminate(_Req, _State) ->
     ok.
 
-time_info() ->
-    {{_,_,_},{Hr,Min,Sec}} = calendar:now_to_local_time(now()),
-    A = io_lib:format("~p:~p:~p", [Hr,Min,Sec]),
-    {ok, A}.
-
-message (Type, Data) ->
-    Term = binary_to_list(term_to_binary(Data)),
-    {ok, list_to_binary(io_lib:format("{~p:~p}",[Type,Term]))}.
-
-wr_to_json(Event,Username,Text) ->
-    {_,Time_event} = time_info(),
-    Str =  unicode:characters_to_list(io_lib:format("{\"event\":\"~s\", \"name\":\"~s\",\"text\":\"~s\",\"time\":\"~s\"}",[Event, Username,  Text, Time_event])),
-    io:format("Json is --~s~n",[Str]),
-    {ok, Str}.

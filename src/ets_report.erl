@@ -2,27 +2,41 @@
 -include("webserver.hrl").
 
 -export([init/1]).
+-export([close_tables/0]).
 -export([insert/4]).
 -export([info/1]).
 -export([info/2]).
 -export([update/2]).
 -export([delete/1]).
+-export([restore_backup/0]).
 -export([logtex/1]).
 
-init(report) ->
+init(DbFile) ->
     ets:new(report, [ordered_set, {keypos,#report.key}, named_table, public]),
+    dets:open_file(reportDisk, [{type, set},{file,DbFile},{keypos,#report.key}]),
+    Size = proplists:get_value(size,(dets:info(reportDisk))),
+    if Size =/= 0 ->
+            restore_backup();
+       true ->
+            ok
+    end,
     ets:new(ospid, [set, named_table, public]),
-    ets:new(pdflist,[bag,named_table, public]), %%new table para key-pdf
     ets:new(logtex,[bag,named_table, public]),
     ok.
+close_tables() ->
+    ets:delete(report),
+    ets:delete(ospid),
+    ets:delete(logtex),
+    dets:close(reportDisk).
+
 %% @doc Заполнение таблиц ets. Создаётся уникальный 
 %% идентификатор Ref значение которого присваивается заданию.  
-insert(Path,Filename,ReportName, User) ->
-    %%{Meg, Sec, Ms} = now(),
-    %%Ref = integer_to_list(Meg * 1000000 + Sec + Ms),
+insert(Path, Filename, ReportName, User) ->
     {ok, Digest} = lib_md5:file(filename:join([Path,"dynamic", Filename])),
     Ref = lib_md5:digest2str(Digest),
-    ets:insert(report, [#report{path=Path, filename=Filename, reportname= ReportName, user=binary_to_list(User), key=Ref, status="wait"}]), 
+    Timeref = calendar:datetime_to_gregorian_seconds(calendar:now_to_universal_time(now())),
+    ets:insert(report, [{report,Timeref, Path,Filename,ReportName,User,Ref,"wait"}]), 
+    dets:insert(reportDisk,[{report,Timeref, Path,Filename,ReportName,User,Ref,"restoring"}]),
     io:format("Ref is --~p~n",[Ref]),
     info(Ref),
     {ok, Ref}.
@@ -33,8 +47,8 @@ info(Key) ->
         _ ->
             info(ets:next(report, Key))
     end,     
-    {ok, Cmd} = cmd(Key),
-    Message  = term_to_binary({eval,{Cmd}}),
+    {ok, Message} = js:cmd(Key),
+    %%Message  = term_to_binary({eval,{Cmd}}),
     gproc:send({p, l, {pubsub,wsbroadcast}}, {self(), {pubsub,wsbroadcast}, Message}), 
     ok.
 info(Key, Pid) ->
@@ -44,8 +58,8 @@ info(Key, Pid) ->
         _ ->
             info(ets:next(report, Key), Pid)
     end,     
-    {ok, Cmd} = cmd(Key),
-    Message = term_to_binary({eval,{Cmd}}),
+    {ok, Message} = js:cmd(Key),
+    %%Message = term_to_binary({eval,{Cmd}}),
     Pid!{binary, Message},
     ok.
 
@@ -53,52 +67,20 @@ update(Key, Status) ->
     ets:update_element(report,Key, {#report.status, Status}),
     ok.
 delete(Key) ->
-    Pdflist = ets:match(pdflist,{Key,'$1'}),
-    lists:map(fun(H) -> file:delete(H) end, Pdflist),
-    ets:match_delete(report, {report, '_','_', '_','_',Key,'_'}),
-    ets:match_delete(pdflist, {Key,'_'}),
+    ets:match_delete(report, {report,'_', '_','_', '_','_',Key,'_'}),
+    dets:match_delete(reportDisk, {report, '_','_','_', '_','_',Key,'_'}),
     Cmd =  binary_to_list(unicode:characters_to_binary("$('#"++Key ++"').remove()")),
     Message  = term_to_binary({eval,{Cmd}}),
     gproc:send({p, l, {pubsub,wsbroadcast}}, {self(), {pubsub,wsbroadcast}, Message}), 
     ok.
-cmd(Key) ->
-    [{report,Path, Filename, ReportName,User,Key,Status}] = ets:lookup(report,Key),
-    case Status of
-        "done" -> 
-            Cond = ets:match(pdflist,{Key,'$1'}),
-            Insert = lists:append(lists:map(fun(H) -> 
-                                                    Size = float_to_list(filelib:file_size(H)/1024,[{decimals, 0}]),
-                                                    Ext = filename:extension(H),
-                                                    "<p><a target=\"_blank\" href=\"/pdf/"++filename:basename(H)++"\">"++unicode:characters_to_list(ReportName)++ "---"++Ext++"---size, kb:--"++Size++"</a></p>" end, Cond)),
-            Check="<button class=\"btn btn-link\"onclick=\"checkDel(this);\">Удалить</button>",
-            Class = "success",
-            CheckInfo="";
-        "error" ->
-            Url = filename:join(["users",User,filename:basename(Path),"dynamic", Filename]),
-            Insert = "<p><a target=\"_blank\" href=\""++Url++"\">"++unicode:characters_to_list(ReportName)++ "</a></p>", 
-            Check="<button class=\"btn btn-link\"onclick=\"checkDel(this);\">Удалить</button>",
-            Class = "danger",
-            CheckInfo="class=\"lightbox1\" id=\""++User++Key++"\"onclick=\"checkInfo(this)\"";
-         "working" ->
-            Insert = unicode:characters_to_list(ReportName),
-            Check="<button class=\"btn btn-link\"onclick=\"checkStop(this)\";>Остановить</button>",
-            Class = "info",
-            CheckInfo="class=\"lightbox1\" id=\""++User++Key++"\"onclick=\"checkInfo(this)\";";  
-        _ ->
-            Insert = unicode:characters_to_list(ReportName),
-            Check="",
-            Class = "info",
-            CheckInfo="class=\"lightbox1\" id=\""++User++Key++"\"onclick=\"checkInfo(this)\";"   
-    end,
-    Cmd = binary_to_list(unicode:characters_to_binary("$('#"++Key
-                                                      ++"').remove();$('#tblstatus').append('<tr class=\""
-                                                      ++Class++"\" id=\""++Key
-                                                      ++"\"><td "++CheckInfo++">"++User++"</td><td>"
-                                                      ++Insert
-                                                      ++"</td><td>"++Status
-                                                      ++"</td><td>"++Check++"</td></tr>')")),
-    %io:format("Command_ets is --~ts~n",[Cmd]),
-    {ok, Cmd}.
+
+restore_backup() ->
+    Insert = fun(Rec) ->
+                     ets:insert(report, Rec),
+                     continue
+             end,
+    dets:traverse(reportDisk, Insert).
+    %%info(ets:first(report)).
 
 logtex(Key) ->
     Cond = ets:match(logtex,{Key,'$1'}),

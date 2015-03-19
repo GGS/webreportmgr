@@ -42,7 +42,8 @@ multipart(Req,OldForm) ->
                                       true ->
                                            ok
                                    end,
-                                   {ok, Key} = ets_report:insert(Dirname, binary_to_list(Filename),ReportName, User),
+
+                                   {ok, Key} = ets_report:insert(Dirname, binary_to_list(Filename),ReportName, binary_to_list(User)),
                                    io:format("---Dirname-~p-Key-~p~n",[Dirname, Key]),
                                    lager:log(notice, [{pid, self()}], "File uploaded!--Dirname-~p-Key-~p~n", [Dirname, Key]),
                                    Cond = erlang:whereis(task_queue_manager),

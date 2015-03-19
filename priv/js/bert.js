@@ -206,14 +206,17 @@ $bert.do = function dobert(erlang) {
         eval(utf8_decode(data.value[0][0].toString()).replace(/'t/g,"not"));
         break;
     case "procs":
-        eval(loadCpu(data));
+        loadCpu(data);
         break;
     case "loadavg":
         //console.log(data);
-        eval(loadAvg(data));
+        loadAvg(data);
         break;
     case "uptime":
-        eval(loadUptime(data));
+        loadUptime(data);
+        break;
+    case "tbl":
+        fillTbl(data);
         break;
     }
     
