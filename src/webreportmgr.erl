@@ -25,6 +25,7 @@ start(_,_) ->
     supervisor:start_link({local, ?MODULE}, ?MODULE, root).
     
 stop(_) ->
+    ets_report:close_tables(),
     ok.
 update_routes() ->
     Routes = dispatch_rules(),

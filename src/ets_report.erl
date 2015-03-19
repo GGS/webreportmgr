@@ -67,6 +67,9 @@ update(Key, Status) ->
     ets:update_element(report,Key, {#report.status, Status}),
     ok.
 delete(Key) ->
+    {ok, CWD} = file:get_cwd(),
+    Pdflist = filelib:wildcard(filename:join([CWD, "priv","pdf"])++"/"++Key++"*.{pdf,zip}"),
+    lists:map(fun(H) -> file:delete(H) end, Pdflist),
     ets:match_delete(report, {report,'_', '_','_', '_','_',Key,'_'}),
     dets:match_delete(reportDisk, {report, '_','_','_', '_','_',Key,'_'}),
     Cmd =  binary_to_list(unicode:characters_to_binary("$('#"++Key ++"').remove()")),

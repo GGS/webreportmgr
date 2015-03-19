@@ -28,10 +28,8 @@ cmd(Key) ->
     [{report,Timeref, Path, Filename, ReportName,User,Key,Status}] = ets:lookup(report,Key),
     case Status of
         "done" -> 
-             {ok, CWD} = file:get_cwd(),
-            Fdest = filename:join([CWD, "priv","pdf"]),
-            Cond = filelib:wildcard(Fdest++"/"++Key++"*.{pdf,zip}"),
-           
+            {ok, CWD} = file:get_cwd(),
+            Cond = filelib:wildcard(filename:join([CWD, "priv","pdf"])++"/"++Key++"*.{pdf,zip}"),
             [[Bt,Et]] = ets:match(report, {report,'$1', '_','$2', '_','_',Key,'_'}),
             {_,{M1,M2,M3}} = calendar:seconds_to_daystime(Et-Bt),
             Insert = lists:append(lists:map(fun(H) -> 
