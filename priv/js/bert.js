@@ -183,7 +183,7 @@ $bert.on = function onbert(evt, callback) // BERT formatter
         reader.addEventListener("loadend", function() {
             try {
                 var erlang = dec(reader.result);
-                //console.log(erlang.toString());
+                //console.log(erlang);
                 if (typeof callback  == 'function') callback(erlang);
             } catch (e) { return { status: "error", desc: e }; }
         });
@@ -217,6 +217,10 @@ $bert.do = function dobert(erlang) {
         break;
     case "tbl":
         fillTbl(data);
+        break;
+    case "logtask":
+        //logTask(data);
+        console.log(data.value[0][0]);
         break;
     }
     

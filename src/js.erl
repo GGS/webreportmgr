@@ -39,12 +39,12 @@ cmd(Key) ->
                                                     [[Size,Ext, filename:basename(H),M1,M2,M3]]  end, Cond));
        
         _ ->
-            UrlReport = filename:join(["users",User,filename:basename(Path),"dynamic", Filename]),
+            UrlReport = filename:join(["users",User,filename:basename(Path),"dynamic"]),
             Insert = unicode:characters_to_list(UrlReport)
              
     end,
-   
-    Cmd  = term_to_binary({tbl,[Timeref, Path, Filename, unicode:characters_to_list(ReportName), User, Key, Status, Insert]}),
+     
+    Cmd  = term_to_binary({tbl,[Timeref, Path, Filename, binary_to_list(unicode:characters_to_binary(ReportName)), User, Key, Status, Insert]}),
     {ok, Cmd}.
 
 %%%

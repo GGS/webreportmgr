@@ -128,41 +128,40 @@ function fillTbl (data) {
     var Check='';
     switch (data[6]) {
     case 'done':
-         console.log(data);
         for (i=0; i < data[7].length; i++) {
-            Insert = Insert.concat('<p><a target="_blank" href="/pdf/'+data[7][i][2]+'">'+dataUnix(data[0])+'--'+data[3]+'---Ext-'+data[7][i][1]+'---size, kb:-'+data[7][i][0]+'---total time:-'+Doubl(data[7][i][3])+':'+Doubl(data[7][i][4])+':'+Doubl(data[7][i][5])+'</a></p>');
+            Insert = Insert.concat('<p><a target="_blank" href="/pdf/'+data[7][i][2]+'">'+dataUnix(data[0])+'--'+utf8_decode(data[3])+'---Ext-'+data[7][i][1]+'---size, kb:-'+data[7][i][0]+'---total time:-'+Doubl(data[7][i][3])+':'+Doubl(data[7][i][4])+':'+Doubl(data[7][i][5])+'</a></p>');
         }
         Class = 'success';
-        CheckInfo='';
+        CheckInfo=data[4];;
         Check='<button class="btn btn-link" onclick="checkDel(this)">Удалить</button>';
         break;
     case 'working':
-        Insert = dataUnix(data[0])+'--'+data[3];
+        Insert = dataUnix(data[0])+'--'+utf8_decode(data[3]);
         Check='<button class="btn btn-link" onclick="checkStop(this)">Остановить</button>';
         Class = 'info';
-        CheckInfo='class="lightbox1" id="'+data[4]+Key+'" onclick="checkInfo(this)"';
+        //CheckInfo='class="lightbox1" id="'+data[4]+Key+'" onclick="checkInfo(this)"';
+        CheckInfo=data[4]+'--<a target="_blank" href="/'+data[7]+'/logreport.txt">Logreport</a>--<a target="_blank" href="/'+data[7]+'/rlog.txt">Rlog</a>';
         break;
     case 'error':
-        Insert = '<p><a target="_blank" href="'+data[7]+'">'+ dataUnix(data[0])+'--'+data[3]+'</a></p>'; 
+        Insert = '<p><a target="_blank" href="'+data[7]+'/'+data[2]+'">'+ dataUnix(data[0])+'--'+utf8_decode(data[3])+'</a></p>'; 
         Check='<button class="btn btn-link "onclick= "checkDelErr(this)">Удалить</button>';
         Class = 'danger';
-        CheckInfo='class="lightbox1" id="'+data[4]+Key+'" onclick="checkInfo(this)"';
+        CheckInfo=data[4]+'--<a target="_blank" href="/'+data[7]+'/logreport.txt">Logreport</a>--<a target="_blank" href="/'+data[7]+'/rlog.txt">Rlog</a>';
         break;
      case 'restoring':
-        Insert = dataUnix(data[0])+'--'+data[3];
+        Insert = dataUnix(data[0])+'--'+utf8_decode(data[3]);
         Check='<button class="btn btn-link" onclick="checkRest(this)">Восстановить</button>';
         Class = 'warning';
-        CheckInfo='';
+        CheckInfo=data[4];
         break;
     default:
-        Insert = dataUnix(data[0])+'--'+data[3];
+        Insert = dataUnix(data[0])+'--'+utf8_decode(data[3]);
         Class = 'info';
         Check='';
-        CheckInfo='';
-        console.log(data);
+        CheckInfo=data[4];
     }
     $('#'+Key).remove();
-    $('#tblstatus').append('<tr class='+Class+' id='+Key+'><td '+CheckInfo+'>'+data[4]+'</td><td>'+Insert+'</td><td>'+data[6]+'</td><td>'+Check+'</td></tr>');
+    $('#tblstatus').append('<tr class='+Class+' id='+Key+'><td >'+CheckInfo+'</td><td>'+Insert+'</td><td>'+data[6]+'</td><td>'+Check+'</td></tr>');
 }
 
 function dataUnix(unix_time) {
