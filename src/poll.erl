@@ -47,9 +47,11 @@ exist(Initcount) ->
     Lavg = term_to_binary({loadavg,[L1,L5,L10]}),
     {M0,{M1,M2,M3}} = calendar:seconds_to_daystime(calendar:datetime_to_gregorian_seconds(calendar:now_to_local_time(now()))-Initcount),
     Uptime = term_to_binary({uptime,[integer_to_list(M0),M1,M2,M3]}),
+    %%Totalstat = term_to_binary({totalstat,ets_report:total_stat()}),
     gproc:send({p, l, {pubsub,wsbroadcast}}, {self(), {pubsub,wsbroadcast}, Stat}), 
     gproc:send({p, l, {pubsub,wsbroadcast}}, {self(), {pubsub,wsbroadcast}, Lavg}),
     gproc:send({p, l, {pubsub,wsbroadcast}}, {self(), {pubsub,wsbroadcast}, Uptime}),
+    %%gproc:send({p, l, {pubsub,wsbroadcast}}, {self(), {pubsub,wsbroadcast}, Totalstat}),
     Timer = erlang:send_after(1000, self(), check), %перезапускаем таймер
     %%io:format("~p~p~p~p~n",[M0,M1,M2,M3]),
     {noreply, {Timer,Initcount}}.  

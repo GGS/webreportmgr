@@ -120,6 +120,12 @@ function loadUptime (data) {
     $('#uptime').append('<strong>'+data[0]+" : "+Doubl(data[1])+":"+Doubl(data[2])+":"+Doubl(data[3])+'</strong>'); 
 /*Fill table */
 }
+function loadTotalstat(data)  {
+    for (i=0; i < data.length; i++) {
+        //console.log(data[i].value[0][0]);
+    }
+}
+
 function fillTbl (data) {
     var Key = data[5];
     var Class ='';

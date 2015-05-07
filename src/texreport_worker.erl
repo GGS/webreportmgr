@@ -36,8 +36,7 @@ init(_Args) ->
             ets:update_element(report,Key, {4,calendar:datetime_to_gregorian_seconds(calendar:now_to_universal_time(now()))}),%%меням имя файла на время выполнения
             ets_report:update(Key, "done"), %%Здесь меняется статус задания
             dets:insert(reportDisk, ets:lookup(report,Key)),
-            [[Bt, Et, User, Rn]] = ets:match(report, {report,'$1', '_','$2', '$4','$3',Key,'_'}),
-            dets:insert(statReportDisk,[{Key, Bt,Et,User,Rn}]),
+            print_stat:update(Key),
             ets:match_delete(ospid, {Key,'_'}),%% убираем из ospid
             ets_report:info(ets:first(report)),
             ok

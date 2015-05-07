@@ -215,6 +215,9 @@ $bert.do = function dobert(erlang) {
     case "uptime":
         loadUptime(data);
         break;
+    case "totalstat":
+        loadTotalstat(data);
+        break;
     case "tbl":
         fillTbl(data);
         break;

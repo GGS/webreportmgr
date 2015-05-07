@@ -72,6 +72,7 @@ dispatch_rules() ->
                                   Static("css"),
                                   Static("js"),
                                   Static("img"),
+                                  {["/favicon.ico"], cowboy_static, {priv_file, webreportmgr, "favicon.ico"}},
                                   {"/pdf/[...]", cowboy_static, {dir,list_to_binary(Pdf_dest),[{mimetypes, cow_mimetypes, all}]}},
                                   {"/users/[...]", cowboy_static, {dir,list_to_binary(Users_dest),[{mimetypes, cow_mimetypes, all}]}},
                                   {"/logs/[...]", cowboy_static, {dir,list_to_binary(Logs_dest),[{mimetypes, cow_mimetypes, all}]}},
@@ -80,6 +81,7 @@ dispatch_rules() ->
                                   {"/index", index_handler, []},
                                   {"/upload", upload_handler, []},
                                   {"/status/[...]", status_handler, []},
+                                  {"/stat", reportstat_handler, []},
                                   {"/websocket", bullet_handler, [{handler, ws_handler}]},
                                   {'_', notfound_handler, []}
                                  ]}
