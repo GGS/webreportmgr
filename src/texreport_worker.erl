@@ -36,7 +36,7 @@ init(_Args) ->
             ets:update_element(report,Key, {4,calendar:datetime_to_gregorian_seconds(calendar:now_to_universal_time(now()))}),%%меням имя файла на время выполнения
             ets_report:update(Key, "done"), %%Здесь меняется статус задания
             dets:insert(reportDisk, ets:lookup(report,Key)),
-            print_stat:update(Key),
+            %%print_stat:update(Key),
             ets:match_delete(ospid, {Key,'_'}),%% убираем из ospid
             ets_report:info(ets:first(report)),
             ok
@@ -73,10 +73,18 @@ run(Command, Key) ->
     %%io:format("Proc est ~p~n",[proplists:get_value(os_pid,erlang:port_info(Port))]),
     run(Port, [], <<>>, Key).
 run(Port, Lines, OldLine, Key) ->
+     {ok, Re} = re:compile("erlang]:.+"),
     receive
         {Port, {data, Data}} ->
             case Data of
                 {eol, Line} ->
+                     case re:run(Line, Re,[{capture,[0], list}]) of
+                         {match, [Match]}  ->
+                             [Rname, Page, Type] = tl(string:tokens(Match," ")),
+                             print_stat:update(Key,Rname, Page, Type),
+                             io:format("Report- ~s, Pages -~s, Type -~s~n",[Rname, Page, Type]);
+                         _-> nomatch
+                    end,
                     ets:insert(logtex,{Key, Line}),
                     run(Port, [<<OldLine/binary, Line/binary>> | Lines], <<>>, Key);
                 {noeol, Line} ->

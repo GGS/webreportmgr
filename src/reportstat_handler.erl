@@ -20,8 +20,8 @@ content_types_provided(Req, State) ->
      ], Req, State}.
 
 to_text(Req, State) ->
-    Res = print_stat:total_stat(),
-    Body= lists:map(fun({X,[Y,Z]})-> io_lib:format("User: ~s  TotalTime:~s TotalReports: ~s~n",[X, integer_to_list(Y),integer_to_list(Z)]) end, Res),
+    Res = print_stat:total_tbl(),
+    Body= lists:map(fun({_,Bt,Et,User,Rname,Page,Type})-> io_lib:format("User: ~s  TotalTime:~s ReportN: ~s, Pages:~s, Type:~s~n",[User, integer_to_list(Et-Bt),Rname,Page,Type]) end, Res),
     {list_to_binary(Body), Req, State}.
 
 to_json(Req, State) ->
