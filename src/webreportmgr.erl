@@ -72,6 +72,7 @@ dispatch_rules() ->
                                   Static("css"),
                                   Static("js"),
                                   Static("img"),
+                                   Static("html"),
                                   {["/favicon.ico"], cowboy_static, {priv_file, webreportmgr, "favicon.ico"}},
                                   {"/pdf/[...]", cowboy_static, {dir,list_to_binary(Pdf_dest),[{mimetypes, cow_mimetypes, all}]}},
                                   {"/users/[...]", cowboy_static, {dir,list_to_binary(Users_dest),[{mimetypes, cow_mimetypes, all}]}},

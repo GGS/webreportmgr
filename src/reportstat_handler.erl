@@ -28,8 +28,8 @@ to_text(Req, State) ->
     {list_to_binary(Body), Req, State}.
 
 to_json(Req, State) ->
-    Res = print_stat:total_stat(),
-    Body= lists:map(fun({X,[Y,Z]})-> io_lib:format("{\"user\":\"~s\", \"totalTime\":~s,\"totalReports\":~s}",[X, integer_to_list(Y),integer_to_list(Z)]) end, Res),
+    Res = print_stat:total_tbl(),
+    Body= lists:map(fun({_,Bt,Et,User,Rname,Page,Type})-> io_lib:format("{\"user\":\"~s\", \"BeginTime\":~s, \"totalTime\":~s,\"Name\":\"~s\",\"totalPage\":\"~s\",\"Type\":\"~s\"}",[User, integer_to_list(Bt-719528*24*3600),integer_to_list(Et-Bt),Rname,Page,Type]) end, Res),
     {ok, Re} = re:compile("}{"),
     {re:replace(list_to_binary(io_lib:format("[~s]",[Body])), Re,"},{",[global,{return, list}]), Req, State}.
 
@@ -50,3 +50,4 @@ to_html(Req,State) ->
 
 terminate(_Reason, _Req, _State) ->
 	ok.
+%% -719528*24*3600 поправка на время 1.1.1970 
