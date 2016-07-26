@@ -41,6 +41,7 @@ exist(Initcount, Ostype) ->
        true ->
             true
     end,
+    gproc:send({p, l, {pubsub,wsbroadcast}}, {self(), {pubsub,wsbroadcast}, term_to_binary({ostype,Ostype})}), 
     if Ostype == "Linux\n" ->
             [L1,L5,L10,_,_] = string:tokens(os:cmd("cat /proc/loadavg")," "),
             R = lists:filter(fun(X) -> X =/= nomatch  end, 
@@ -52,7 +53,6 @@ exist(Initcount, Ostype) ->
                                     [Pu, Total, list_to_integer(Idle)] end, R),
             Stat =  term_to_binary({procs,T}),
             Lavg = term_to_binary({loadavg,[L1,L5,L10]}),
-            gproc:send({p, l, {pubsub,wsbroadcast}}, {self(), {pubsub,wsbroadcast}, term_to_binary({ostype,Ostype})}), 
             gproc:send({p, l, {pubsub,wsbroadcast}}, {self(), {pubsub,wsbroadcast}, Stat}), 
             gproc:send({p, l, {pubsub,wsbroadcast}}, {self(), {pubsub,wsbroadcast}, Lavg});
        true  ->
