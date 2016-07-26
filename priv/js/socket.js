@@ -125,6 +125,10 @@ function loadTotalstat(data)  {
         //console.log(data[i].value[0][0]);
     }
 }
+function loadOstype(data) {
+    $('#ostype').empty();
+    $('#ostype').append('<strong>'+ data+ '</strong>');
+}
 
 function fillTbl (data) {
     var Key = data[5];

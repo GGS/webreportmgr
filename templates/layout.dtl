@@ -37,6 +37,8 @@
           <button  class="btn btn-default" type="button"
           onclick="sendTxt();">Send</button> 
         </div></li>
+         <li><p class="navbar-text">
+        OS type: <span id="ostype"></span></p></li>
         <li><p class="navbar-text">
         LoadAverage: <span id="loadavg"></span></p></li>
         <li><p class="navbar-text"> Uptime: <span id="uptime"></span></p></li>
