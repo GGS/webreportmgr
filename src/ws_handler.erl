@@ -7,7 +7,10 @@ init(_Transport, Req, _Opts, _Active) ->
     {Username, Req2} =  cowboy_req:cookie(<<"username">>, Req),
     {_, Str} = js:wr_to_json("connected",Username, "Ok!"),
     {_, Message} = js:message("data",Str),
+    {[Ostype]} = js:os_type(),
     Term  = term_to_binary({eval,{js:index()}}),
+    Ncpu =  term_to_binary({ncpu, js:ncpu(Ostype)}),
+    Osterm = term_to_binary({ostype,Ostype}),
     self()!{binary, Term},
     gproc:reg({p, l, ?WSKey}),
     erlang:start_timer(1000, self(), Message),
@@ -21,6 +24,8 @@ init(_Transport, Req, _Opts, _Active) ->
        true ->
             ok
     end,
+    self()!{binary, Osterm},
+    self()!{binary, Ncpu},
     {ok, Req2, undefined_state}.
 
 stream({text, <<"PING", Name/binary>>}, Req, State) ->

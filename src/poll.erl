@@ -9,8 +9,8 @@ start() ->
    
 init(_Args) ->
     Timer = erlang:send_after(1, self(), check),
-    Ostype = os:cmd("uname"),
-     if Ostype == "Linux\n" ->
+    {[Ostype]} = js:os_type(),
+     if Ostype == "Linux" ->
              lager:log(notice, [{pid, self()}], "Os is Linux ");
         true ->
             lager:log(notice, [{pid, self()}], "Os is FreeBSD ") 
@@ -41,8 +41,8 @@ exist(Initcount, Ostype) ->
        true ->
             true
     end,
-    gproc:send({p, l, {pubsub,wsbroadcast}}, {self(), {pubsub,wsbroadcast}, term_to_binary({ostype,Ostype})}), 
-    if Ostype == "Linux\n" ->
+    %%gproc:send({p, l, {pubsub,wsbroadcast}}, {self(), {pubsub,wsbroadcast}, term_to_binary({ostype,Ostype})}), 
+    if Ostype == "Linux" ->
             Avgpath = "cat /proc/loadavg",
             Cpupath = "cat /proc/stat",
             ospath(Avgpath, Cpupath);

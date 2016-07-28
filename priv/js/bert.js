@@ -217,9 +217,14 @@ $bert.do = function dobert(erlang) {
         break;
     case "totalstat":
         loadTotalstat(data);
+        break;
     case "ostype":
         //console.log(data);
         loadOstype(data);
+        break;
+    case "ncpu":
+        console.log(data);
+        loadNcpu(data);
         break;
     case "tbl":
         fillTbl(data);

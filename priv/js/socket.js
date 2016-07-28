@@ -17,12 +17,14 @@ function init(){
     ws.ondisconnect = function() { active = false; console.log('Disconnect'); };
     var sng = window.sng = window.sng || {};
     sng.avg =[];
-    var numproc = 6;
-    initproc(numproc);
-    initdraw();
-    };
+};
  	
 
+function loadNcpu(data) {
+    var numproc = data;
+    initproc(numproc);
+    initdraw(); 
+};
 
 function sendTxt() {
     txt = $("#send_txt").val();
