@@ -63,7 +63,7 @@ ncpu(Ostype) ->
     if Ostype == "Linux" ->
             Ncpu = os:cmd("cat /proc/cpuinfo | grep ^processor |wc -l");
        true ->
-            V1 = string:tokens(os:cmd("sysctl -a | egrep -i 'hw.ncpu'"),"\n"),
+            [V1] = string:tokens(os:cmd("sysctl -a | egrep -i 'hw.ncpu'"),"\n"),
             [V2, Ncpu] = string:tokens(V1," ")
     end,
     Ncpu.

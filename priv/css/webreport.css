@@ -11,9 +11,9 @@ float: left
 }
 
 .statcontainer {
-width: 10%;
+//width: 10%;
 margin:10px;
-background-color: lightgrey;
+//background-color: lightgrey;
 }
 .plot {
 margin:5px;

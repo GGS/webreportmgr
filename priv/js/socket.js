@@ -23,7 +23,7 @@ function init(){
 function loadNcpu(data) {
     var numproc = data;
     initproc(numproc);
-    initdraw(); 
+    initdraw(numproc); 
 };
 
 function sendTxt() {
@@ -190,8 +190,8 @@ function Doubl (num) {
     }
 return num;
 }
-function initdraw()  {
-    var w = 150;
+function initdraw(numproc)  {
+    var w = numproc*25;
     var barPadding = 4;
     var h = 140;
     var xPadding = 25;
@@ -199,10 +199,13 @@ function initdraw()  {
     sng.svg = d3.select("#graf")
         .append("svg:svg")
         .attr("class","chart")
-        .attr("width", w*1.2)
+        .attr("width", w+ 2 * xPadding)
 	.attr("height", h);
    
-    data =['1','1','1','1','1','1'];
+    var data = new Array();
+    for (var i = 0; i < numproc; i++) {
+        data[i] = '1';
+    };
     var scale = d3.scale.linear()
         .domain([100, 0])
         .range([0, 100]);
