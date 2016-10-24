@@ -20,14 +20,14 @@ init(DbFile) ->
        true ->
             ok
     end,
+    dets:close(reportDisk),
     ets:new(ospid, [set, named_table, public]),
     ets:new(logtex,[bag,named_table, public]),
     ok.
 close_tables() ->
     ets:delete(report),
     ets:delete(ospid),
-    ets:delete(logtex),
-    dets:close(statReportDisk).
+    ets:delete(logtex).
     
 
 %% @doc Заполнение таблиц ets. Создаётся уникальный 
@@ -37,10 +37,14 @@ insert(Path, Filename, ReportName, User) ->
     Ref = lib_md5:digest2str(Digest),
     Timeref = calendar:datetime_to_gregorian_seconds(calendar:now_to_universal_time(now())),
     ets:insert(report, [{report,Timeref, Path,Filename,ReportName,User,Ref,"wait"}]),
+    dets:open_file(reportDisk, [{type, set},{file, "repDb"},{keypos,#report.key}]),
     dets:insert(reportDisk,[{report,Timeref, Path,Filename,ReportName,User,Ref,"restoring"}]),
+    dets:close(reportDisk),
     io:format("Ref is --~p~n",[Ref]),
     info(Ref),
     {ok, Ref}.
+%% @doc Обновляет информацию об записях  в базе репортов. 
+%%Р екурсивно проходит по всей таблице
 info(Key) ->
     case  ets:next(report,Key) of
         '$end_of_table' ->
@@ -72,7 +76,9 @@ delete(Key) ->
     Pdflist = filelib:wildcard(filename:join([CWD, "priv","pdf"])++"/"++Key++"*.{pdf,zip}"),
     lists:map(fun(H) -> file:delete(H) end, Pdflist),
     ets:match_delete(report, {report,'_', '_','_', '_','_',Key,'_'}),
+    dets:open_file(reportDisk, [{type, set},{file,"repDb"},{keypos,#report.key}]),
     dets:match_delete(reportDisk, {report, '_','_','_', '_','_',Key,'_'}),
+    dets:close(reportDisk),
     Cmd =  binary_to_list(unicode:characters_to_binary("$('#"++Key ++"').remove()")),
     Message  = term_to_binary({eval,{Cmd}}),
     gproc:send({p, l, {pubsub,wsbroadcast}}, {self(), {pubsub,wsbroadcast}, Message}), 

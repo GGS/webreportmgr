@@ -1,6 +1,8 @@
 -module(texreport_worker).
 -behaviour(task_queue).
 
+-include("webserver.hrl").
+
 -export([
         init/1,
         process_task/2,
@@ -35,7 +37,9 @@ init(_Args) ->
             lager:log(notice, [{pid, self()}], "File ready for use --~s", [FileList]),
             ets:update_element(report,Key, {4,calendar:datetime_to_gregorian_seconds(calendar:now_to_universal_time(now()))}),%%меням имя файла на время выполнения
             ets_report:update(Key, "done"), %%Здесь меняется статус задания
+            dets:open_file(reportDisk, [{type, set},{file,"repDb"},{keypos,#report.key}]),
             dets:insert(reportDisk, ets:lookup(report,Key)),
+            dets:close(reportDisk),
             %%print_stat:update(Key),
             ets:match_delete(ospid, {Key,'_'}),%% убираем из ospid
             ets_report:info(ets:first(report)),
@@ -102,7 +106,9 @@ run(Port, Lines, OldLine, Key) ->
     
 del_error(Key) ->
     ets_report:update(Key, "error"),
+    dets:open_file(reportDisk, [{type, set},{file,"repDb"},{keypos,#report.key}]),
     dets:insert(reportDisk, ets:lookup(report,Key)),
+    dets:close(reportDisk),
     ets:match_delete(ospid, {Key,'_'}),
     ets_report:info(ets:first(report)).
     

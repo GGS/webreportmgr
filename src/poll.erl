@@ -42,6 +42,8 @@ exist(Initcount, Ostype) ->
             true
     end,
     %%gproc:send({p, l, {pubsub,wsbroadcast}}, {self(), {pubsub,wsbroadcast}, term_to_binary({ostype,Ostype})}), 
+    time_rest(86400),
+    %% 
     if Ostype == "Linux" ->
             Avgpath = "cat /proc/loadavg",
             Cpupath = "cat /proc/stat",
@@ -78,5 +80,22 @@ exist(Initcount, Ostype) ->
     %%io:format("~p~p~p~p~n",[M0,M1,M2,M3]),
     {noreply, {Timer,Initcount, Ostype}}.  
 
-
+%% Функция проверки времени создания отчёта с интервалом после которого отчёт удаляется
+%% аргумент  функции - интервал времени в секундах
+time_rest(Time) ->
+    Timeref = calendar:datetime_to_gregorian_seconds(calendar:now_to_universal_time(now())),
+    List = ets:match(report, {'_','_','_','$2','_','_','$1',"done"}),
+    if List == [] ->
+            Res = empty;
+       true ->
+            lists:map(fun(X) -> [Key, Et] = X,
+                                if  Timeref - Et < Time ->
+                                        nothing;
+                                    true -> 
+                                        ets_report:delete(Key)
+                                end 
+                      end, List),
+            Res = ok
+    end,
+    Res.
 
