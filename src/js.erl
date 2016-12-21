@@ -39,7 +39,7 @@ cmd(Key) ->
                                                     [[Size,Ext, filename:basename(H),M1,M2,M3]]  end, Cond));
        
         _ ->
-            UrlReport = filename:join(["users",User,filename:basename(Path),"dynamic"]),
+            UrlReport = filename:join(["users",User,filename:basename(Path)]),
             Insert = unicode:characters_to_list(UrlReport)
              
     end,

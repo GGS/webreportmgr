@@ -152,13 +152,13 @@ function fillTbl (data) {
         Check='<button class="btn btn-link" onclick="checkStop(this)">Остановить</button>';
         Class = 'info';
         //CheckInfo='class="lightbox1" id="'+data[4]+Key+'" onclick="checkInfo(this)"';
-        CheckInfo=data[4]+'--<a target="_blank" href="/'+data[7]+'/logreport.txt">Logreport</a>--<a target="_blank" href="/'+data[7]+'/rlog.txt">Rlog</a>';
+        CheckInfo=data[4]+'--<a target="_blank" href="/'+data[7]+'/result/temp/logreport.txt">Logreport</a>--<a target="_blank" href="/'+data[7]+'/result/temp/rlog.txt">Rlog</a>';
         break;
     case 'error':
-        Insert = '<p><a target="_blank" href="'+data[7]+'/'+data[2]+'">'+ dataUnix(data[0])+'--'+utf8_decode(data[3])+'</a></p>'; 
+        Insert = '<p><a target="_blank" href="'+data[7]+'/dynamic/'+data[2]+'">'+ dataUnix(data[0])+'--'+utf8_decode(data[3])+'</a></p>'; 
         Check='<button class="btn btn-link "onclick= "checkDelErr(this)">Удалить</button>';
         Class = 'danger';
-        CheckInfo=data[4]+'--<a target="_blank" href="/'+data[7]+'/logreport.txt">Logreport</a>--<a target="_blank" href="/'+data[7]+'/rlog.txt">Rlog</a>';
+        CheckInfo=data[4]+'--<a target="_blank" href="/'+data[7]+'/result/temp/logreport.txt">Logreport</a>--<a target="_blank" href="/'+data[7]+'/result/temp/rlog.txt">Rlog</a>';
         break;
      case 'restoring':
         Insert = dataUnix(data[0])+'--'+utf8_decode(data[3]);

@@ -61,14 +61,14 @@ filedir(Dirname, Key) ->
     Fdest = filename:join([CWD, "priv","pdf"]),
     filelib:ensure_dir(Fdest++"/1"),
     file_utils:zip_dir("result.zip", Dirname),
-    List = filelib:wildcard(Dirname++"/*.{pdf,zip}"),
-    FileList = lists:map(fun(X) -> filename:basename(X) end,List),
-    lists:map(fun(Z) -> file:copy(Dirname++"/"++Z,Fdest++"/"++Key++"-"++Z) end,FileList), 
+    %%List = filelib:wildcard(Dirname++"/*.{pdf,zip}"),
+    List = lists:append(filelib:wildcard(Dirname++"/result/*.pdf"), [filename:join(Dirname,"result.zip")]),
+    lists:map(fun(X) -> file:copy(X,Fdest++"/"++Key++"-"++filename:basename(X)) end,List), 
     file_utils:del_dir(Dirname),%kill dir
     Msg="Отчёт - "++ Key ++ " готов",
     js:send_msg(info, Msg),
     ets:match_delete(logtex, {Key,'_'}),
-    {ok, FileList}.
+    {ok, filename:basename(List)}.
 
 run(Command, Key) ->
     Port = open_port({spawn, Command},
